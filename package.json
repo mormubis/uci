@@ -1,0 +1,48 @@
+{
+  "author": "Adrian de la Rosa <adrian@delarosab.me>",
+  "description": "My Moleculer-based microservices project",
+  "dependencies": {
+    "avsc": "^5.4.19",
+    "moleculer": "^0.14.0",
+    "nats": "^1.3.2"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.10.1",
+    "eslint-plugin-sort-keys-fix": "^1.1.0",
+    "gitmoji-cli": "^3.2.3",
+    "husky": "^4.2.3",
+    "jest": "^25.1.0",
+    "jest-cli": "^25.1.0",
+    "lint-staged": "^10.0.9",
+    "moleculer-repl": "^0.6.2",
+    "prettier": "^2.0.2"
+  },
+  "name": "icu",
+  "scripts": {
+    "ci": "jest --watch",
+    "test": "jest",
+    "coverage": "jest --coverage --no-cache --silent",
+    "coverage:ci": "npm run coverage -- --maxWorkers 4",
+    "debug": "node --inspect node_modules/.bin/moleculer-runner -- --config config/moleculer.js --repl --hot src/services",
+    "format": "npm run format:ci -- --write",
+    "format:ci": "prettier -l \"**/*.+(js|json|md|yml)\"",
+    "lint": "eslint \"./**/*.js\" --fix",
+    "lint:ci": "npm run lint",
+    "serve": "moleculer-runner --config config/moleculer.js ./services",
+    "prestart": "docker-compose up --build -d",
+    "start": "npm run serve -- --repl --hot",
+    "stop": "docker-compose down",
+    "test:ci": "npm test -- --maxWorkers 4 --no-cache --silent",
+    "test:watch": "jest --watch"
+  },
+  "version": "1.0.0",
+  "jest": {
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "rootDir": "./services",
+    "roots": [
+      "../test"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "env": {
+    "node": true
+  },
+  "extends": ["eslint:recommended", "prettier"],
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": 2020
+  },
+  "plugins": ["sort-keys-fix"],
+  "rules": {
+    "sort-keys": ["error", "asc", { "caseSensitive": true, "natural": false }],
+    "sort-keys-fix/sort-keys-fix": "warn"
+  }
+}
