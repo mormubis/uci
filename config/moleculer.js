@@ -1,3 +1,5 @@
+const steroids = require('../middlewares/steroids');
+
 /**
  * Moleculer ServiceBroker configuration file
  *
@@ -49,7 +51,7 @@ module.exports = {
   },
 
   // Register custom middlewares
-  middlewares: [],
+  middlewares: [steroids],
 
   // Settings of Service Registry. More info: https://moleculer.services/docs/0.14/registry.html
   registry: {
