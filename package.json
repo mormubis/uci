@@ -1,0 +1,44 @@
+{
+  "author": "Adrian de la Rosa <adrian@delarosab.me>",
+  "description": "UCI Interface",
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
+    "@typescript-eslint/parser": "^5.57.0",
+    "eslint": "^8.37.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-config-standard": "^17.0.0",
+    "husky": "^8.0.3",
+    "jest": "^29.5.0",
+    "lint-staged": "^13.2.0",
+    "prettier": "^2.8.7",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.0.3"
+  },
+  "files": [
+    "/dist/",
+    "LICENSE",
+    "README.md"
+  ],
+  "keywords": [
+    "chess",
+    "fide",
+    "interface",
+    "uci"
+  ],
+  "license": "MIT",
+  "main": "dist/index.js",
+  "name": "@echecs/uci",
+  "repository": "mormubis/uci",
+  "scripts": {
+    "build": "tsc",
+    "format": "prettier --ignore-path .gitignore \"src/**/*.+(js|json|md|ts|yml)\" --write",
+    "lint": "eslint \"src/**/*.ts\" --fix",
+    "prepare": "npm run build",
+    "test": "jest",
+    "test:coverage": "npm run test -- --coverage",
+    "test:watch": "npm run test -- --watch"
+  },
+  "types": "dist/index.d.ts",
+  "version": "2.1.4"
+}
