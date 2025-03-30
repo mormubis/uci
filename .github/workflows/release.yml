@@ -1,4 +1,4 @@
-name: Release
+name: 🚀 Release
 
 on:
   push:
@@ -6,29 +6,61 @@ on:
       - main
 
 jobs:
-  build:
-    name: Release
+  check:
+    name: ✅ Check version
+    outputs:
+      changed: ${{ steps.check.outputs.changed }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Setup
-        uses: actions/setup-node@v3
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+
+      - id: check
+        uses: EndBug/version-check@v2
         with:
-          node-version: node
-      - name: Cache NPM Modules
-        id: cache-node
-        uses: actions/cache@v3
+          diff-search: true
+
+  format:
+    name: 👔 Format
+    uses: ./.github/workflows/format.yml
+
+  lint:
+    name: 🔬 Lint
+    uses: ./.github/workflows/lint.yml
+
+  test:
+    name: 🧪 Test
+    uses: ./.github/workflows/test.yml
+
+  release:
+    name: 🚀 Release
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-latest
+    needs: [check, format, lint, test]
+    if: needs.check.outputs.changed == 'true'
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/package-lock.json') }}
-      - name: Install dependencies
-        if: steps.cache-node.outputs.cache-hit != 'true'
-        run: npm ci
-      - name: Verify
-        run: npm run test
-      - name: Release to NPM
-        uses: JS-DevTools/npm-publish@v1
+          version: latest
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v4
         with:
-          access: public
-          token: ${{ secrets.NPM_TOKEN }}
+          cache: "pnpm"
+          node-version: "node"
+          registry-url: "https://registry.npmjs.org"
+          scope: "@echecs"
+
+      - name: 📥 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🗂️ Release to NPM
+        run: pnpm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

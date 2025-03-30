@@ -1,19 +1,22 @@
-import { spawn } from 'node:child_process';
+import * as process from 'node:child_process';
 
-import EventEmitter from './event-emitter';
+import Emittery from 'emittery';
 
 type Events = {
-  disconnect: () => void;
-  exit: (code: number | null) => void;
-  error: (output: Error) => void;
-  read: (output: string) => void;
+  disconnect: undefined;
+  exit: number;
+  error: Error;
+  line: string;
 };
 
-class Process extends EventEmitter<Events> {
+class Process extends Emittery<Events> {
   private buffer: string = '';
+  private child: process.ChildProcessWithoutNullStreams;
 
-  constructor(path: string, private child = spawn(path)) {
+  constructor(path: string) {
     super();
+
+    this.child = process.spawn(path);
 
     this.child.on('disconnect', () => this.emit('disconnect'));
     this.child.on('error', (error) => this.emit('error', error));
@@ -24,7 +27,7 @@ class Process extends EventEmitter<Events> {
       const lines = this.buffer.split('\n');
       this.buffer = lines.pop() ?? '';
 
-      lines.forEach((line) => this.emit('read', line));
+      lines.forEach((line) => this.emit('line', line));
     });
     this.child.stderr.on('data', (data) => this.emit('error', data));
   }
@@ -41,6 +44,7 @@ class Process extends EventEmitter<Events> {
     return new Promise((ok, ko) => {
       this.child.stdin.write(input, 'utf-8', (error) => {
         if (error) return ko(error);
+        ok();
       });
     });
   }

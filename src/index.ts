@@ -1,239 +1,188 @@
-import EventEmitter from './event-emitter';
-import Process from './process';
+import Emmittery from 'emittery';
 
-import type { ID } from './id';
-import type { Info } from './info';
-import type { Option } from './options';
+import Options from './options.ts';
+import * as parser from './parser/index.ts';
+import Process from './process.ts';
 
 type Events = {
-  error: (value: Error) => void;
-  id: (value: ID) => void;
-  info: (value: Info) => void;
-  option: (value: Option) => void;
-  ready: () => void;
-  ok: () => void;
+  bestmove: string;
+  copyprotection: string;
+  error: Error;
+  id: UCI.ID;
+  info: UCI.InfoCommand;
+  option: UCI.Option;
+  readyok: undefined;
+  registration: string;
+  uciok: undefined;
 };
 
-type UCIOptions = { timeout?: number } & Record<string, Option>;
+type RegisterOptions = {
+  name: string;
+  code: string;
+};
 
-const COMMANDS = {
-  bestmove: identity,
-  copyprotection: identity,
-  id: extract(['author', 'name']),
-  info: extract([
-    'cpuload',
-    'currline',
-    'currmove',
-    'currmovenumber',
-    'depth',
-    'hashfull',
-    'multipv',
-    'nodes',
-    'nps',
-    'pv',
-    'refutation',
-    'seldepth',
-    'score',
-    'string',
-    'tbhits',
-    'time',
-  ]),
-  option: extract(['default', 'max', 'min', 'name', 'type', 'var']),
-  readyok: empty,
-  registration: identity,
-  uciok: empty,
-};
-const EVENTS = {
-  readyok: 'ready',
-  uciok: 'ok',
-};
 const TIMEOUT = 5000;
 
-function empty(): void {}
+class UCI extends Emmittery<Events> {
+  /**
+   * Internal state of the debug mode
+   * @private
+   */
+  #debug = false;
 
-function extract<K extends string[], I extends K[number]>(keywords: K) {
-  return (line: string): Partial<Record<I, string>> => {
-    const chunks = line.split(' ');
+  /**
+   * Internal state of the depth
+   * @private
+   */
+  #depth: number | 'infinite' = 'infinite';
 
-    const result: Partial<Record<I, K>> = {} satisfies Partial<Record<I, K>>;
+  /**
+   * Internal state of uciok event
+   * @private
+   */
+  readonly #ready: Promise<void>;
 
-    for (let i = 0, chunk = chunks[i], key: K[number] = keywords[0]; i < chunks.length; i++) {
-      if (keywords.includes(chunk)) {
-        key = chunk;
-        result[key] = [];
-      } else {
-        result[key]?.push(chunk);
-      }
-    }
+  /**
+   * Internal store of the engine id
+   * @private
+   */
+  #id: UCI.ID | undefined;
 
-    return Object.entries(result).reduce(
-      (acc, [key, value]) => ({ ...acc, [key]: (value as string[]).join(' ') }),
-      {} as Partial<Record<K[number], string>>,
-    );
-  };
-}
+  /**
+   * Internal list of moves
+   * @private
+   */
+  #moves: string[] = [];
 
-function identity(value: string): string {
-  return value;
-}
+  /**
+   * Initial position of the engine
+   * @private
+   */
+  #position: string = 'startpos';
 
-function isCommand(input: string): input is keyof typeof COMMANDS {
-  return input in COMMANDS;
-}
+  /**
+   * Internal store of the engine options
+   * @private
+   */
+  private readonly options = new Options();
 
-function isEvent(input: string): input is keyof typeof EVENTS {
-  return input in EVENTS;
-}
+  private process: Process;
 
-function memoize<T extends Promise<void>>(target: any, property: string, descriptor: TypedPropertyDescriptor<T>) {
-  const getter = descriptor.get!;
-
-  let memory: T | null = null;
-
-  descriptor.get = function (): T {
-    if (!memory) {
-      memory = getter();
-    }
-
-    return memory;
-  };
-}
-
-class UCIError extends Error {
-  constructor(message: string) {
-    super(`UCI Error: ${message}`);
-  }
-}
-
-class UCIOptionError extends UCIError {
-  constructor(message: string) {
-    super(`'setoption' - ${message}`);
-  }
-}
-
-class UCI extends EventEmitter<Events> {
-  #debug: boolean = false;
-  readonly #id: ID = {};
-  readonly #ok: Promise<void>;
-  readonly #options: Record<string, Option> = {};
-
-  constructor(path: string, { timeout, ...options }: UCIOptions = {}, private process = new Process(path)) {
+  constructor(path: string, { timeout }: { timeout?: number } = {}) {
     super();
 
-    process.on('read', this.ingest);
-    process.on('error', (value) => this.emit('error', value));
+    this.process = new Process(path);
 
-    // It will store id
-    this.on('id', this.store('id'));
-    // It stores the options
-    this.on('option', this.store('options'));
+    this.process.on('line', this.ingest.bind(this));
+    this.process.on('error', (value) => this.emit('error', value));
 
-    // Set a mutex for running any commands until uci is ready
-    this.#ok = new Promise((ok, ko) => {
-      this.on('ok', () => ok());
-
-      setTimeout(ko, timeout ?? TIMEOUT);
+    // Store the ID of the engine
+    this.on('id', (id) => {
+      this.#id = id;
+    });
+    // Define the available options
+    this.on('option', (option) => {
+      this.options.define(option.name, option);
     });
 
-    // Starts the communication
-    this.execute(`uci`);
+    // Set a promise to wait for the engine to be ready
+    this.#ready = new Promise(async (ok, ko) => {
+      this.on('uciok', () => ok());
 
-    // Set any options
-    Object.entries(options).forEach(([key, value]) => this.options.set(key, value));
+      // Set a timeout as a fallback
+      setTimeout(ko, timeout ?? TIMEOUT);
+
+      // Starts the communication protocol
+      await this.execute('uci');
+    });
   }
 
-  async debug(force?: boolean): Promise<void> {
-    const next = force ?? !this.#debug;
-
-    await this.execute(`debug ${next ? 'on' : 'off'}`);
-
-    this.#debug = next;
+  get depth() {
+    return this.#depth;
   }
 
-  private async execute(command: string): Promise<void> {
-    await this.#ok;
-    await this.process.write(`${command}\n`);
+  set depth(value: number | 'infinite') {
+    this.#depth = value;
+    console.log('>>> this.#depth', this.#depth);
   }
 
-  async id(): Promise<ID> {
-    await this.#ok;
+  async id(): Promise<UCI.ID> {
+    await this.#ready;
+
+    if (!this.#id) throw new Error('ID not found');
 
     return this.#id;
   }
 
-  go() {}
-
-  private ingest(input: string) {
-    const [eventName, ...chunks] = input.split(' ') as [keyof typeof COMMANDS, ...string[]];
-
-    if (!isCommand(eventName)) {
-      throw new UCIError(`Not supported event ${input}`);
-    }
-
-    const data = COMMANDS[eventName](chunks.join(' '));
-
-    if (isEvent(eventName)) {
-      this.emit(EVENTS[eventName as keyof typeof EVENTS], data);
-    }
-    this.emit(isEvent(eventName) ? EVENTS[eventName] : eventName);
+  async execute(command: string): Promise<void> {
+    await this.process.write(`${command}\n`);
   }
 
-  get options() {
-    return {
-      ...this.#options,
-      get: (name: string): Option | undefined => {
-        return this.#options[name];
-      },
-      set: async (name: string, value: any): Promise<void> => {
-        const parameters = this.#options[name];
+  async move(input: string): Promise<void> {
+    this.#moves.push(input);
 
-        if (!parameters) {
-          throw new UCIOptionError(`'${name}' is not part of the available options`);
-        }
+    const list = this.#moves.join(' ');
 
-        if (typeof value !== parameters.type)
-          throw new UCIOptionError(`option '${name}' expected ${parameters.type} but received ${typeof value}`);
-        if ('options' in parameters && !parameters.options.includes(value)) {
-          const available = parameters.options.map((item) => `'${item}'`).join(', ');
-          const message = `'${value}' does not match any available option: ${available}`;
-
-          throw new UCIOptionError(`${message}`);
-        }
-        if ('max' in parameters && value > parameters.max!)
-          throw new UCIOptionError(`'${value}' is greater than the max '${parameters.max}'`);
-        if ('min' in parameters && value < parameters.min!)
-          throw new UCIOptionError(`'${value}' is less than the min '${parameters.max}'`);
-
-        await this.execute(`setoption ${name} ${value}`);
-        this.#options[name].value = value;
-      },
-    };
+    await this.ready();
+    await this.execute(`position ${this.#position} moves ${list}`);
   }
 
-  ponderhit() {}
+  get position() {
+    return this.#position;
+  }
 
-  position() {}
+  set position(input: string) {
+    this.#position = input;
+    this.#moves = [];
 
-  register() {}
+    this.ready().then(() => this.execute(`position ${input}`));
+  }
 
-  reset() {}
+  async register(options?: RegisterOptions) {
+    if (!options) return this.execute('register later');
+
+    const { name, code } = options;
+    return this.execute(`register name ${name} code ${code}`);
+  }
+
+  async reset() {
+    this.position = 'startpos';
+  }
+
+  async start(options: Record<string, unknown> = {}) {
+    Object.entries(options).forEach(([key, value]) => {
+      this.options.set(key, value);
+      this.execute(`setoption name ${key} value ${value}`);
+    });
+
+    await this.#ready;
+
+    const depth =
+      this.#depth === 'infinite' ? 'infinite' : `depth ${this.#depth}`;
+    await this.execute(`go ${depth}`);
+  }
 
   stop() {}
 
-  private store(key: 'id'): (value: ID) => void;
-  private store(key: 'options'): (value: Option) => void;
-  private store(key: 'id' | 'options') {
-    return ({ name, ...value }: any) => {
-      this[`__${key}__`][name] = value;
-    };
+  private async ingest(input: string) {
+    const [key, ...argv] = input.split(' ');
+    const value = argv.join(' ');
+
+    if (key === undefined) throw new Error('No command found');
+    if (!(key in parser)) throw new Error(`Unknown command: ${key}`);
+
+    const command = key as keyof Events;
+    const payload = parser[command](value);
+
+    await this.emit(command, payload as any);
   }
 
-  ready(): Promise<void> {
-    return new Promise(async (ok) => {
-      this.on('ready', () => ok(undefined));
+  private async ready(): Promise<void> {
+    const promise = this.once('readyok');
 
-      await this.execute('ready');
-    });
+    await this.execute('isready');
+
+    return promise;
   }
 }
 
