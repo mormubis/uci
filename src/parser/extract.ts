@@ -1,20 +1,23 @@
 function extract<K extends string>(keys: K[]) {
-  return (value: string): Record<K, string> => {
+  return (value: string) => {
     const chunks = value.split(' ');
-    const extraction: Partial<Record<K, string>> = {};
+    const extraction: Partial<Record<K | 'default', string>> = {};
 
-    let key: K | undefined = undefined;
+    let key: K | 'default' = 'default';
     for (let chunk of chunks) {
       if (keys.includes(chunk as K)) {
         key = chunk as K;
-        extraction[key] = '';
-      } else if (key !== undefined) {
+      } else {
+        if (extraction[key] === undefined) {
+          extraction[key] = '';
+        }
+
         extraction[key] += ` ${chunk}`;
         extraction[key] = extraction[key]?.trim();
       }
     }
 
-    return extraction as Record<K, string>;
+    return extraction;
   };
 }
 

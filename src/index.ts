@@ -5,12 +5,13 @@ import * as parser from './parser/index.ts';
 import Process from './process.ts';
 
 type Events = {
-  bestmove: string;
+  bestmove: { move: string; ponder?: string };
   copyprotection: string;
   error: Error;
   id: UCI.ID;
   info: UCI.InfoCommand;
   option: UCI.Option;
+  output: string;
   readyok: undefined;
   registration: string;
   uciok: undefined;
@@ -47,6 +48,12 @@ class UCI extends Emmittery<Events> {
    * @private
    */
   #id: UCI.ID | undefined;
+
+  /**
+   * Internal state of the number of lines
+   * @private
+   */
+  #lines: number = 1;
 
   /**
    * Internal list of moves
@@ -115,7 +122,21 @@ class UCI extends Emmittery<Events> {
   }
 
   async execute(command: string): Promise<void> {
+    if (
+      command === 'stop' ||
+      command.startsWith('go') ||
+      command.startsWith('position')
+    )
+      console.log('========>>> EXECUTE', command);
     await this.process.write(`${command}\n`);
+  }
+
+  get lines() {
+    return this.#lines;
+  }
+
+  set lines(value: number) {
+    this.#lines = value;
   }
 
   async move(input: string): Promise<void> {
@@ -123,8 +144,9 @@ class UCI extends Emmittery<Events> {
 
     const list = this.#moves.join(' ');
 
-    await this.ready();
+    await this.execute('stop');
     await this.execute(`position ${this.#position} moves ${list}`);
+    await this.go();
   }
 
   get position() {
@@ -150,26 +172,43 @@ class UCI extends Emmittery<Events> {
   }
 
   async start(options: Record<string, unknown> = {}) {
-    Object.entries(options).forEach(([key, value]) => {
-      this.options.set(key, value);
-      this.execute(`setoption name ${key} value ${value}`);
-    });
-
     await this.#ready;
+
+    Object.entries({ MultiPV: this.#lines, ...options }).forEach(
+      ([key, value]) => {
+        this.options.set(key, value);
+        this.execute(`setoption name ${key} value ${value}`);
+      },
+    );
+
+    await this.go();
+  }
+
+  stop() {
+    return this.execute('quit');
+  }
+
+  private async go() {
+    await this.ready();
 
     const depth =
       this.#depth === 'infinite' ? 'infinite' : `depth ${this.#depth}`;
     await this.execute(`go ${depth}`);
   }
 
-  stop() {}
-
   private async ingest(input: string) {
     const [key, ...argv] = input.split(' ');
     const value = argv.join(' ');
 
-    if (key === undefined) throw new Error('No command found');
-    if (!(key in parser)) throw new Error(`Unknown command: ${key}`);
+    if (key === undefined) {
+      console.warn('No command found');
+      return;
+    }
+
+    if (!(key in parser)) {
+      // If the command is not in the parser, emit it as output
+      return await this.emit('output', input);
+    }
 
     const command = key as keyof Events;
     const payload = parser[command](value);
