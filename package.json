@@ -1,6 +1,6 @@
 {
   "author": "Adrian de la Rosa <adrian@delarosab.me>",
-  "description": "A TypeScript-based Universal Chess Interface (UCI) for integrating chess engines with graphical user interfaces (GUIs).",
+  "description": "UCI is a Universal Chess Interface that is part of the ECHECS project, providing a standardized way for chess engines to communicate with graphical user interfaces (GUIs).",
   "devDependencies": {
     "@eslint/js": "^9.23.0",
     "@types/node": "^22.13.14",
@@ -29,7 +29,9 @@
     "chess",
     "fide",
     "interface",
-    "uci"
+    "uci",
+    "universal chess interface",
+    "chess engine"
   ],
   "license": "MIT",
   "main": "dist/index.js",
