@@ -1,4 +1,4 @@
-import extract from './extract.ts';
+import extract from './extract';
 
 const extractor = extract(['ponder']);
 

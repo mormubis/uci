@@ -1,8 +1,8 @@
 import Emmittery from 'emittery';
 
-import Options from './options.ts';
-import * as parser from './parser/index.ts';
-import Process from './process.ts';
+import Options from './options.js';
+import * as parser from './parser/index.js';
+import Process from './process.js';
 
 type Events = {
   bestmove: { move: string; ponder?: string };

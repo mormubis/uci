@@ -20,7 +20,7 @@ class Process extends Emittery<Events> {
 
     this.child.on('disconnect', () => this.emit('disconnect'));
     this.child.on('error', (error) => this.emit('error', error));
-    this.child.on('exit', (code) => this.emit('exit', code));
+    this.child.on('exit', (code) => this.emit('exit', code ?? 0));
     this.child.stdout.on('data', (data) => {
       this.buffer += data;
 

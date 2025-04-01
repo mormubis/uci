@@ -1,6 +1,6 @@
-import identity from './identity.ts';
-import extract from './extract.ts';
-import noop from './noop.ts';
+import identity from './identity';
+import extract from './extract';
+import noop from './noop';
 
 const copyprotection = identity;
 const error = identity;
@@ -10,6 +10,6 @@ const readyok = noop;
 const registration = identity;
 const uciok = noop;
 
-export { default as bestmove } from './bestmove.ts';
-export { default as info } from './info.ts';
+export { default as bestmove } from './bestmove';
+export { default as info } from './info';
 export { copyprotection, error, id, option, readyok, registration, uciok };

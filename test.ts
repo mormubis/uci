@@ -1,4 +1,4 @@
-import UCI from './src/index.ts';
+import UCI from './src/index';
 
 const lc0 = new UCI(
   '/Users/adelarosabretin/Downloads/stockfish/stockfish-macos-m1-apple-silicon',
