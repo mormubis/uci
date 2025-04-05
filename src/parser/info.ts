@@ -1,4 +1,4 @@
-import extract from './extract';
+import extract from './extract.js';
 
 const extractor = extract([
   'cpuload',

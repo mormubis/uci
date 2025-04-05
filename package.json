@@ -46,7 +46,7 @@
     "lint:style": "eslint \"src/**/*.{ts,tsx}\" --fix",
     "lint:types": "tsc --noEmit --project tsconfig.json",
     "prepare": "pnpm run build",
-    "test": "pnpm grammar:compile && vitest run",
+    "test": "vitest run",
     "test:coverage": "pnpm run test --coverage",
     "test:watch": "pnpm run test --watch"
   },
