@@ -289,3 +289,4 @@ This event is emitted when the engine acknowledges the UCI protocol. This
 indicates that the engine is ready to accept UCI commands and is fully
 initialized. After this event, you can start sending moves or other UCI
 commands.
+Test
