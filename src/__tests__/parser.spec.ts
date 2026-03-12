@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import bestmove from '../parser/bestmove.js';
-import { id } from '../parser/index.js';
+import { id, option } from '../parser/index.js';
 
 describe('bestmove', () => {
   it('parses a move with no ponder', () => {
@@ -27,5 +27,54 @@ describe('id', () => {
 
   it('parses an author name that contains spaces', () => {
     expect(id('author Stefan MK')).toMatchObject({ author: 'Stefan MK' });
+  });
+});
+
+describe('option', () => {
+  it('parses a check option', () => {
+    expect(option('name Nullmove type check default true')).toMatchObject({
+      name: 'Nullmove',
+      type: 'check',
+      default: 'true',
+    });
+  });
+
+  it('parses a spin option with min and max', () => {
+    expect(
+      option('name Selectivity type spin default 2 min 0 max 4'),
+    ).toMatchObject({
+      name: 'Selectivity',
+      type: 'spin',
+      default: '2',
+      min: '0',
+      max: '4',
+    });
+  });
+
+  it('parses a combo option with multiple var values', () => {
+    const result = option(
+      'name Style type combo default Normal var Solid var Normal var Risky',
+    );
+    expect(result).toMatchObject({
+      name: 'Style',
+      type: 'combo',
+      default: 'Normal',
+    });
+    expect(result.var).toBeDefined();
+  });
+
+  it('parses a string option', () => {
+    expect(option('name NalimovPath type string default c:\\')).toMatchObject({
+      name: 'NalimovPath',
+      type: 'string',
+      default: 'c:\\',
+    });
+  });
+
+  it('parses a button option with a multi-word name', () => {
+    expect(option('name Clear Hash type button')).toMatchObject({
+      name: 'Clear Hash',
+      type: 'button',
+    });
   });
 });
