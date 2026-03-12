@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import bestmove from '../parser/bestmove.js';
+import { id } from '../parser/index.js';
 
 describe('bestmove', () => {
   it('parses a move with no ponder', () => {
@@ -16,5 +17,15 @@ describe('bestmove', () => {
 
   it('parses a null move (0000)', () => {
     expect(bestmove('0000')).toEqual({ move: '0000' });
+  });
+});
+
+describe('id', () => {
+  it('parses an engine name that contains spaces', () => {
+    expect(id('name Shredder X.Y')).toMatchObject({ name: 'Shredder X.Y' });
+  });
+
+  it('parses an author name that contains spaces', () => {
+    expect(id('author Stefan MK')).toMatchObject({ author: 'Stefan MK' });
   });
 });
