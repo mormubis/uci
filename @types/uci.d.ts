@@ -50,39 +50,44 @@ namespace UCI {
   export type ID = { author: string; name: string };
 
   /**
+   * Score from the engine — centipawns or mate distance, with optional bound
+   */
+  export type Score =
+    | { bound: 'lower'; type: 'cp'; value: number }
+    | { bound: 'upper'; type: 'cp'; value: number }
+    | { bound?: never; type: 'cp'; value: number }
+    | { bound?: never; type: 'mate'; value: number };
+
+  /**
    * Information emitted by the engine
    */
   export type InfoCommand = {
     comment?: string;
-    // string?: string; // comments
 
-    cpu?: number; // load of the cpu
-    // cpuload?: number; // the cpu usage of the engine is x
+    cpuload?: number; // cpu usage in permill
 
     current?: { line?: string; move?: string; number?: number };
-    // currline?: string;
-    // currmove?: string;
-    // currmovenumber?: number;
 
     depth?: number | { selective: number; total: number };
-    // seldepth?: number;
 
-    // hashfull?: unknown; // boolean?
+    hashfull?: number; // hash is x permill full
 
-    line?: number;
-    // multipv?: number; // line number
+    info?: string; // free-form string from engine
 
-    moves?: string[];
-    // pv?: string; // <move1> ... <movei>
+    line?: number; // multipv line number
 
-    stats?: { nps?: string }; // engine statistics
+    moves?: string[]; // pv moves
+
+    nodes?: number; // nodes searched
 
     refutation?: string;
 
-    score?: unknown; // ?
+    score?: Score;
 
-    tbhits?: number; // x positions where found in the endgame table bases
+    stats?: { nps?: number }; // engine statistics
 
-    time?: number; // the time searched in ms
+    tbhits?: number; // positions found in endgame tablebases
+
+    time?: number; // time searched in ms
   };
 }
