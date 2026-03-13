@@ -6,17 +6,19 @@ class Options {
   validators = new Map<string, ZodTypeAny>();
   values = new Map<string, unknown>();
 
-  define(key: string, definition: UCI.Option) {
-    if (this.validators.has(key))
+  define(key: string, definition: UCI.Option): void {
+    if (this.validators.has(key)) {
       throw new Error(`Option "${key}" is already defined.`);
+    }
 
     let validator: ZodTypeAny;
     switch (definition.type) {
-      case 'check':
+      case 'check': {
         validator = z.boolean();
         break;
+      }
 
-      case 'combo':
+      case 'combo': {
         // if (
         //   !definition.var ||
         //   !Array.isArray(definition.var) ||
@@ -26,8 +28,9 @@ class Options {
 
         validator = z.enum(definition.var as [string, ...string[]]);
         break;
+      }
 
-      case 'spin':
+      case 'spin': {
         let local = z.number().int();
 
         if (definition.min !== undefined) {
@@ -40,20 +43,24 @@ class Options {
 
         validator = local;
         break;
+      }
 
-      case 'string':
+      case 'string': {
         validator = z.string();
         break;
+      }
 
-      case 'button':
+      case 'button': {
         // Button doesn't have a value, just a default action
         validator = z.undefined();
         break;
+      }
 
-      default:
+      default: {
         // If we reach this point, the type is invalid, that's why types fail
         // @ts-expect-error - TS2339 - Property 'type' does not exist on type 'never'.
         throw new Error(`Invalid option type "${definition.type}".`);
+      }
     }
 
     // Store the validator
@@ -66,18 +73,24 @@ class Options {
   }
 
   get(key: string): unknown {
-    if (!this.validators.has(key))
+    if (!this.validators.has(key)) {
       throw new Error(`Option "${key}" is not defined.`);
+    }
 
     // Return the stored value
     return this.values.get(key);
   }
 
-  set(key: string, value: unknown) {
-    if (!this.validators.has(key))
+  set(key: string, value: unknown): void {
+    if (!this.validators.has(key)) {
       throw new Error(`Option "${key}" is not defined.`);
+    }
 
-    const validator = this.validators.get(key)!;
+    const validator = this.validators.get(key);
+
+    if (!validator) {
+      throw new Error(`Option "${key}" is not defined.`);
+    }
 
     // Validate the value
     const parsedValue = validator.parse(value);
