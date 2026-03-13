@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import bestmove from '../parser/bestmove.js';
+import identity from '../parser/identity.js';
 import { id, option } from '../parser/index.js';
 import info from '../parser/info.js';
+import noop from '../parser/noop.js';
 
 describe('bestmove', () => {
   it('parses a move with no ponder', () => {
@@ -115,5 +117,20 @@ describe('info', () => {
 
   it('parses tbhits as a number', () => {
     expect(info('tbhits 42')).toMatchObject({ tbhits: 42 });
+  });
+});
+
+describe('identity', () => {
+  it('returns the input string unchanged', () => {
+    expect(identity('checking')).toBe('checking');
+    expect(identity('ok')).toBe('ok');
+    expect(identity('error')).toBe('error');
+  });
+});
+
+describe('noop', () => {
+  it('returns undefined for any input', () => {
+    expect(noop('')).toBeUndefined();
+    expect(noop('anything')).toBeUndefined();
   });
 });
