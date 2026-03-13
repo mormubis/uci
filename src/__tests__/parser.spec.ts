@@ -170,6 +170,18 @@ describe('info', () => {
   it('parses cpuload as a number', () => {
     expect(info('cpuload 750')).toMatchObject({ cpuload: 750 });
   });
+
+  it('parses currline as an array of moves', () => {
+    expect(info('currline e2e4 e7e5 g1f3')).toMatchObject({
+      current: { line: ['e2e4', 'e7e5', 'g1f3'] },
+    });
+  });
+
+  it('parses refutation as an array of moves', () => {
+    expect(info('refutation d1h5 g6h5')).toMatchObject({
+      refutation: ['d1h5', 'g6h5'],
+    });
+  });
 });
 
 describe('identity', () => {

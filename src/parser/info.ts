@@ -40,6 +40,11 @@ function parseScore(
   }
 
   const numeric = Number(rawValue);
+
+  if (!Number.isFinite(numeric)) {
+    return undefined;
+  }
+
   const value = kind === 'cp' ? numeric / 100 : numeric;
 
   if (kind === 'cp') {
