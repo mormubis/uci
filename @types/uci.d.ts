@@ -2,20 +2,22 @@ namespace UCI {
   /**
    * Options for the UCI protocol
    */
-  type MergeTypes<TypesArray extends any[], Res = {}> = TypesArray extends [
-    infer Head,
-    ...infer Rem,
-  ]
-    ? MergeTypes<Rem, Res & Head>
-    : Res;
+  type MergeTypes<
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    TypesArray extends any[],
+    Result = unknown,
+  > = TypesArray extends [infer Head, ...infer Rem]
+    ? MergeTypes<Rem, Result & Head>
+    : Result;
 
   type OneOf<
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     TypesArray extends any[],
-    Res = never,
+    Result = never,
     AllProperties = MergeTypes<TypesArray>,
   > = TypesArray extends [infer Head, ...infer Rem]
-    ? OneOf<Rem, Res | OnlyFirst<Head, AllProperties>, AllProperties>
-    : Res;
+    ? OneOf<Rem, Result | OnlyFirst<Head, AllProperties>, AllProperties>
+    : Result;
 
   type OnlyFirst<F, S> = F & { [Key in keyof Omit<S, keyof F>]?: never };
 
@@ -70,10 +72,10 @@ namespace UCI {
     line?: number;
     // multipv?: number; // line number
 
-    moves?: string;
+    moves?: string[];
     // pv?: string; // <move1> ... <movei>
 
-    nps?: number; // nodes per second
+    stats?: { nps?: string }; // engine statistics
 
     refutation?: string;
 

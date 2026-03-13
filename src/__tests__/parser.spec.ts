@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import bestmove from '../parser/bestmove.js';
 import { id, option } from '../parser/index.js';
+import info from '../parser/info.js';
 
 describe('bestmove', () => {
   it('parses a move with no ponder', () => {
@@ -76,5 +77,43 @@ describe('option', () => {
       name: 'Clear Hash',
       type: 'button',
     });
+  });
+});
+
+describe('info', () => {
+  it('parses depth', () => {
+    expect(info('depth 12 nodes 123456 nps 100000')).toMatchObject({
+      depth: 12,
+    });
+  });
+
+  it('parses score (centipawns) and pv moves', () => {
+    expect(
+      info(
+        'depth 2 score cp 214 time 1242 nodes 2124 nps 34928 pv e2e4 e7e5 g1f3',
+      ),
+    ).toMatchObject({
+      depth: 2,
+      score: 2.14,
+      moves: ['e2e4', 'e7e5', 'g1f3'],
+    });
+  });
+
+  it('parses currmove and currmovenumber as a number', () => {
+    expect(info('currmove e2e4 currmovenumber 1')).toMatchObject({
+      current: { move: 'e2e4', number: 1 },
+    });
+  });
+
+  it('parses multipv line number', () => {
+    expect(info('multipv 2')).toMatchObject({ line: 2 });
+  });
+
+  it('parses nps as a stat', () => {
+    expect(info('nps 34928')).toMatchObject({ stats: { nps: '34928' } });
+  });
+
+  it('parses tbhits as a number', () => {
+    expect(info('tbhits 42')).toMatchObject({ tbhits: 42 });
   });
 });
