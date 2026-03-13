@@ -62,11 +62,9 @@ namespace UCI {
    * Information emitted by the engine
    */
   export type InfoCommand = {
-    comment?: string;
-
     cpuload?: number; // cpu usage in permill
 
-    current?: { line?: string; move?: string; number?: number };
+    current?: { line?: string[]; move?: string; number?: number };
 
     depth?: number | { selective: number; total: number };
 
@@ -80,7 +78,7 @@ namespace UCI {
 
     nodes?: number; // nodes searched
 
-    refutation?: string;
+    refutation?: string[];
 
     score?: Score;
 
