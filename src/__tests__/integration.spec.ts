@@ -11,8 +11,8 @@ describe.skipIf(!ENGINE_PATH)('UCI integration', () => {
     uci = new UCI(ENGINE_PATH!);
   });
 
-  afterEach(() => {
-    uci.stop();
+  afterEach(async () => {
+    await uci.stop();
   });
 
   // eslint-disable-next-line vitest/expect-expect
@@ -53,7 +53,7 @@ describe.skipIf(!ENGINE_PATH)('UCI integration', () => {
       uci.on('info', () => {
         resolve();
       });
-      uci.start();
+      void uci.start();
     });
   });
 
@@ -87,8 +87,8 @@ describe.skipIf(!ENGINE_PATH)('UCI integration', () => {
       errors.push(error);
     });
 
-    await uci.stop();
-
+    // afterEach calls stop() — we just assert no errors before that
+    await new Promise<void>((resolve) => setTimeout(resolve, 100));
     expect(errors).toHaveLength(0);
   });
 });
