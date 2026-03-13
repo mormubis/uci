@@ -96,8 +96,8 @@ describe('info', () => {
       ),
     ).toMatchObject({
       depth: 2,
-      score: 2.14,
       moves: ['e2e4', 'e7e5', 'g1f3'],
+      score: { type: 'cp', value: 2.14 },
     });
   });
 
@@ -112,11 +112,63 @@ describe('info', () => {
   });
 
   it('parses nps as a stat', () => {
-    expect(info('nps 34928')).toMatchObject({ stats: { nps: '34928' } });
+    expect(info('nps 34928')).toMatchObject({ stats: { nps: 34_928 } });
   });
 
   it('parses tbhits as a number', () => {
     expect(info('tbhits 42')).toMatchObject({ tbhits: 42 });
+  });
+
+  it('parses a cp score', () => {
+    expect(info('score cp 214')).toMatchObject({
+      score: { type: 'cp', value: 2.14 },
+    });
+  });
+
+  it('parses a mate score', () => {
+    expect(info('score mate 3')).toMatchObject({
+      score: { type: 'mate', value: 3 },
+    });
+  });
+
+  it('parses a negative mate score (engine getting mated)', () => {
+    expect(info('score mate -2')).toMatchObject({
+      score: { type: 'mate', value: -2 },
+    });
+  });
+
+  it('parses a lowerbound cp score', () => {
+    expect(info('score cp -30 lowerbound')).toMatchObject({
+      score: { bound: 'lower', type: 'cp', value: -0.3 },
+    });
+  });
+
+  it('parses an upperbound cp score', () => {
+    expect(info('score cp 50 upperbound')).toMatchObject({
+      score: { bound: 'upper', type: 'cp', value: 0.5 },
+    });
+  });
+
+  it('parses depth with seldepth as an object', () => {
+    expect(info('depth 12 seldepth 18')).toMatchObject({
+      depth: { selective: 18, total: 12 },
+    });
+  });
+
+  it('parses time in milliseconds', () => {
+    expect(info('time 1242')).toMatchObject({ time: 1242 });
+  });
+
+  it('parses nodes as a number', () => {
+    expect(info('nodes 123456')).toMatchObject({ nodes: 123_456 });
+  });
+
+  it('parses hashfull as a number', () => {
+    expect(info('hashfull 512')).toMatchObject({ hashfull: 512 });
+  });
+
+  it('parses cpuload as a number', () => {
+    expect(info('cpuload 750')).toMatchObject({ cpuload: 750 });
   });
 });
 
