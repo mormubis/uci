@@ -42,15 +42,15 @@ function parseScore(
   const numeric = Number(rawValue);
   const value = kind === 'cp' ? numeric / 100 : numeric;
 
-  if (lowerbound !== undefined) {
-    return { bound: 'lower', type: 'cp', value };
-  }
-
-  if (upperbound !== undefined) {
-    return { bound: 'upper', type: 'cp', value };
-  }
-
   if (kind === 'cp') {
+    if (lowerbound !== undefined) {
+      return { bound: 'lower', type: 'cp', value };
+    }
+
+    if (upperbound !== undefined) {
+      return { bound: 'upper', type: 'cp', value };
+    }
+
     return { type: 'cp', value };
   }
 
@@ -83,17 +83,16 @@ function info(value: string): UCI.InfoCommand {
     score === undefined ? undefined : parseScore(score, lowerbound, upperbound);
 
   return {
+    ...(cpuload !== undefined && { cpuload: Number(cpuload) }),
     ...((currline !== undefined ||
       currmove !== undefined ||
       currmovenumber !== undefined) && {
       current: {
-        line: currline === undefined ? undefined : currline.trim().split(' '),
-        move: currmove,
-        number:
-          currmovenumber === undefined ? undefined : Number(currmovenumber),
+        ...(currline !== undefined && { line: currline.trim().split(' ') }),
+        ...(currmove !== undefined && { move: currmove }),
+        ...(currmovenumber !== undefined && { number: Number(currmovenumber) }),
       },
     }),
-    ...(cpuload !== undefined && { cpuload: Number(cpuload) }),
     ...(depth !== undefined && seldepth !== undefined
       ? { depth: { selective: Number(seldepth), total: Number(depth) } }
       : (depth === undefined
