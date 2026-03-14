@@ -4,8 +4,8 @@ import type { Option } from './types.js';
 import type { ZodTypeAny } from 'zod';
 
 class Options {
-  validators = new Map<string, ZodTypeAny>();
-  values = new Map<string, unknown>();
+  private readonly validators = new Map<string, ZodTypeAny>();
+  private readonly values = new Map<string, unknown>();
 
   define(key: string, definition: Option): void {
     if (this.validators.has(key)) {
@@ -20,13 +20,6 @@ class Options {
       }
 
       case 'combo': {
-        // if (
-        //   !definition.var ||
-        //   !Array.isArray(definition.var) ||
-        //   definition.var.length < 1
-        // )
-        //   throw new Error(`Combo option "${key}" must have var defined.`);
-
         validator = z.enum(definition.var as [string, ...string[]]);
         break;
       }
