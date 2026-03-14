@@ -56,9 +56,9 @@ pnpm test src/__tests__/parser.spec.ts
 pnpm test -- --reporter=verbose -t "bestmove"
 ```
 
-> **Note:** `integration.spec.ts` tests are skipped by default — they require a
-> real UCI engine binary (e.g. Stockfish) installed on the system. 6 skipped
-> tests is expected and normal in CI.
+> **Note:** `integration.spec.ts` tests are skipped when `UCI_ENGINE_PATH` is
+> not set. Set it to a UCI engine path to enable them. 6 skipped tests is
+> expected and normal in CI.
 
 ### Lint & Format
 
@@ -154,8 +154,14 @@ Groups, separated by a blank line, in this order:
 - Use `describe` to group cases; use `it` (not `test`) inside them.
 - Prefer `expect(x).toBe(y)` for exact equality.
 - `sort-keys` and `no-console` are relaxed inside `__tests__/`.
-- Integration tests (requiring a real engine) must be wrapped in `describe.skip`
-  or use `it.skipIf` — never let them fail CI unconditionally.
+- Integration tests (requiring a real engine binary) are skipped automatically
+  when `UCI_ENGINE_PATH` is not set. To run them locally, export the path to a
+  UCI-compatible engine (e.g. Stockfish):
+  ```bash
+  UCI_ENGINE_PATH=/usr/local/bin/stockfish pnpm test
+  ```
+  Never remove the `skipIf` guard — integration tests must never fail CI
+  unconditionally.
 
 ---
 
