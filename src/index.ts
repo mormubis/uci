@@ -42,6 +42,14 @@ class UCI extends Emmittery<Events> {
   #depth: number | 'infinite' = 'infinite';
 
   /**
+   * Stores the first error that caused ready() to fail.
+   * Once set, all subsequent ready() calls short-circuit.
+   * @private
+   */
+  // eslint-disable-next-line no-unused-private-class-members
+  #errored: Error | undefined;
+
+  /**
    * Internal store of the engine id
    * @private
    */
@@ -71,9 +79,16 @@ class UCI extends Emmittery<Events> {
    */
   readonly #ready: Promise<void>;
 
+  /**
+   * Timeout in ms for UCI handshake and isready responses.
+   * @private
+   */
+  readonly #timeout: number;
+
   constructor(path: string, { timeout }: { timeout?: number } = {}) {
     super();
 
+    this.#timeout = timeout ?? TIMEOUT;
     this.process = new Process(path);
 
     this.process.on('line', this.ingest.bind(this));
@@ -95,7 +110,7 @@ class UCI extends Emmittery<Events> {
       });
 
       // Set a timeout as a fallback
-      setTimeout(ko, timeout ?? TIMEOUT);
+      setTimeout(ko, this.#timeout);
 
       // Starts the communication protocol
       this.execute('uci').catch(ko);
