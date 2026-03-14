@@ -4,7 +4,7 @@
   "excludePrivate": true,
   "excludeProtected": false,
   "includeVersion": true,
-  "out": "docs",
+  "out": "docs/api",
   "readme": "README.md",
   "sort": ["source-order"]
 }
