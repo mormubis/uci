@@ -8,6 +8,35 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-03-15
+
+### Added
+
+- `debug(on)` — sends `debug on` / `debug off` to the engine
+- `Events` interface exported from `src/types.ts` — consumers can now type their
+  listeners directly
+- `[Symbol.dispose]()` — sends `quit` and terminates the engine process
+  (replaces using `stop()` for shutdown)
+- `stop()` — now correctly sends `stop` (halts search, keeps engine alive)
+
+### Changed
+
+- `UCI` no longer extends `Emittery` — the public event API is now limited to
+  explicit `on()`, `off()`, and `once()` methods. Emittery internals (`onAny`,
+  `offAny`, `anyEvent`, `clearListeners`, `listenerCount`, `bindMethods`) are no
+  longer accessible.
+- `ready()` now fails fast on process exit or timeout instead of hanging
+  indefinitely — errors are emitted on the `'error'` event
+
+### Fixed
+
+- `stop()` was sending `quit` instead of `stop`
+- `combo` option `var` values were parsed as a single string instead of an
+  array, breaking option validation
+- `lowerbound`/`upperbound` score flags now parsed order-independently
+- `start()` now emits an error instead of throwing when the engine handshake
+  fails
+
 ## [1.0.0] - 2026-03-13
 
 Initial public release.

@@ -51,6 +51,20 @@ export type Score =
   | { bound?: never; type: 'cp'; value: number }
   | { bound?: never; type: 'mate'; value: number };
 
+/** Events emitted by the UCI engine wrapper */
+export interface Events {
+  bestmove: { move: string | undefined; ponder?: string };
+  copyprotection: string;
+  error: Error;
+  id: ID;
+  info: InfoCommand;
+  option: Option;
+  output: string;
+  readyok: undefined;
+  registration: string;
+  uciok: undefined;
+}
+
 /** Information emitted by the engine via `info` command */
 export interface InfoCommand {
   cpuload?: number;

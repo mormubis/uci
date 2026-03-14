@@ -4,20 +4,7 @@ import Options from './options.js';
 import * as parser from './parser/index.js';
 import Process from './process.js';
 
-import type { ID, InfoCommand, Option } from './types.js';
-
-interface Events {
-  bestmove: { move: string | undefined; ponder?: string };
-  copyprotection: string;
-  error: Error;
-  id: ID;
-  info: InfoCommand;
-  option: Option;
-  output: string;
-  readyok: undefined;
-  registration: string;
-  uciok: undefined;
-}
+import type { Events, ID } from './types.js';
 
 interface RegisterOptions {
   code: string;
