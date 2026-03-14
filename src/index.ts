@@ -46,7 +46,6 @@ class UCI extends Emmittery<Events> {
    * Once set, all subsequent ready() calls short-circuit.
    * @private
    */
-  // eslint-disable-next-line no-unused-private-class-members
   #errored: Error | undefined;
 
   /**
@@ -104,7 +103,7 @@ class UCI extends Emmittery<Events> {
     });
 
     // Set a promise to wait for the engine to be ready
-    this.#ready = new Promise((ok, ko) => {
+    this.#ready = new Promise<void>((ok, ko) => {
       this.on('uciok', () => {
         ok();
       });
@@ -114,7 +113,13 @@ class UCI extends Emmittery<Events> {
 
       // Starts the communication protocol
       this.execute('uci').catch(ko);
+    }).catch(() => {
+      // Rejection is surfaced via the error event; suppress unhandled rejection.
     });
+
+    // Immediately start waiting for readyok so that process exit or timeout
+    // during the handshake is caught and surfaced as an error event.
+    void this.ready();
   }
 
   get depth(): number | 'infinite' {
@@ -239,11 +244,37 @@ class UCI extends Emmittery<Events> {
   }
 
   private async ready(): Promise<void> {
-    const promise = this.once('readyok');
+    if (this.#errored) {
+      void this.emit('error', this.#errored);
+      return;
+    }
+
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const readyok = this.once('readyok');
+
+    const exit = new Promise<never>((_, ko) => {
+      void this.process.once('exit').then(() => {
+        ko(new Error('Engine process exited'));
+      });
+    });
+
+    const timeout = new Promise<never>((_, ko) => {
+      timeoutId = setTimeout(() => {
+        ko(new Error('Engine ready timeout'));
+      }, this.#timeout);
+    });
 
     await this.execute('isready');
 
-    return promise;
+    try {
+      await Promise.race([readyok, exit, timeout]);
+    } catch (error: unknown) {
+      this.#errored = error instanceof Error ? error : new Error(String(error));
+      void this.emit('error', this.#errored);
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 }
 
