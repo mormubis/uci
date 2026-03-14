@@ -20,9 +20,7 @@ describe('UCI', () => {
     expect(onError).toHaveBeenCalled();
   });
 
-  it('stop() does not kill the engine process', async () => {
-    // We can't easily test process liveness without a real engine,
-    // so we test that stop() sends 'stop' by spying on execute.
+  it('stop() sends the stop command', async () => {
     const uci = new UCI('/invalid/path');
     const spy = vi.spyOn(
       uci as unknown as { execute: (cmd: string) => Promise<void> },
@@ -35,15 +33,20 @@ describe('UCI', () => {
     expect(spy).toHaveBeenCalledWith('stop');
   });
 
-  it('[Symbol.dispose]() sends quit', async () => {
+  it('[Symbol.dispose]() sends quit and kills the process', async () => {
     const uci = new UCI('/invalid/path');
-    const spy = vi.spyOn(
+    const executeSpy = vi.spyOn(
       uci as unknown as { execute: (cmd: string) => Promise<void> },
       'execute',
+    );
+    const killSpy = vi.spyOn(
+      (uci as unknown as { process: { kill: () => void } }).process,
+      'kill',
     );
 
     await uci[Symbol.dispose]().catch(vi.fn());
 
-    expect(spy).toHaveBeenCalledWith('quit');
+    expect(executeSpy).toHaveBeenCalledWith('quit');
+    expect(killSpy).toHaveBeenCalledOnce();
   });
 });
