@@ -8,7 +8,12 @@ function bestmove(value: string): {
 } {
   const { default: move, ponder } = extractor(value);
 
-  return { move, ...(ponder && { ponder }) };
+  return {
+    move: Array.isArray(move) ? move.join(' ') : move,
+    ...(ponder && {
+      ponder: Array.isArray(ponder) ? ponder.join(' ') : ponder,
+    }),
+  };
 }
 
 export default bestmove;

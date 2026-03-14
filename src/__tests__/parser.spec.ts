@@ -63,7 +63,7 @@ describe('option', () => {
       type: 'combo',
       default: 'Normal',
     });
-    expect(result.var).toBe('Solid Normal Risky');
+    expect(result.var).toEqual(['Solid', 'Normal', 'Risky']);
   });
 
   it('parses a string option', () => {

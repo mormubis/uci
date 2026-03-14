@@ -23,6 +23,14 @@ const extractor = extract([
   'upperbound',
 ]);
 
+function asString(v: string | string[] | undefined): string | undefined {
+  if (v === undefined) {
+    return undefined;
+  }
+
+  return Array.isArray(v) ? v.join(' ') : v;
+}
+
 function parseScore(
   raw: string,
   lowerbound: string | undefined,
@@ -86,38 +94,61 @@ function info(value: string): InfoCommand {
     upperbound,
   } = extractor(value);
 
+  const scoreString = asString(score);
   const parsedScore =
-    score === undefined ? undefined : parseScore(score, lowerbound, upperbound);
+    scoreString === undefined
+      ? undefined
+      : parseScore(scoreString, asString(lowerbound), asString(upperbound));
+
+  const cpuloadString = asString(cpuload);
+  const currlineString = asString(currline);
+  const currmoveString = asString(currmove);
+  const currmovenumberString = asString(currmovenumber);
+  const depthString = asString(depth);
+  const hashfullString = asString(hashfull);
+  const multipvString = asString(multipv);
+  const nodesString = asString(nodes);
+  const npsString = asString(nps);
+  const pvString = asString(pv);
+  const refutationString = asString(refutation);
+  const seldepthString = asString(seldepth);
+  const infoString = asString(string);
+  const tbhitsString = asString(tbhits);
+  const timeString = asString(time);
 
   return {
-    ...(cpuload !== undefined && { cpuload: Number(cpuload) }),
-    ...((currline !== undefined ||
-      currmove !== undefined ||
-      currmovenumber !== undefined) && {
+    ...(cpuloadString !== undefined && { cpuload: Number(cpuloadString) }),
+    ...((currlineString !== undefined ||
+      currmoveString !== undefined ||
+      currmovenumberString !== undefined) && {
       current: {
-        ...(currline !== undefined && { line: currline.trim().split(' ') }),
-        ...(currmove !== undefined && { move: currmove }),
-        ...(currmovenumber !== undefined && { number: Number(currmovenumber) }),
+        ...(currlineString !== undefined && {
+          line: currlineString.trim().split(' '),
+        }),
+        ...(currmoveString !== undefined && { move: currmoveString }),
+        ...(currmovenumberString !== undefined && {
+          number: Number(currmovenumberString),
+        }),
       },
     }),
-    ...(depth !== undefined && {
+    ...(depthString !== undefined && {
       depth:
-        seldepth === undefined
-          ? Number(depth)
-          : { selective: Number(seldepth), total: Number(depth) },
+        seldepthString === undefined
+          ? Number(depthString)
+          : { selective: Number(seldepthString), total: Number(depthString) },
     }),
-    ...(hashfull !== undefined && { hashfull: Number(hashfull) }),
-    ...(string !== undefined && { info: string }),
-    ...(multipv !== undefined && { line: Number(multipv) }),
-    ...(pv !== undefined && { moves: pv.trim().split(' ') }),
-    ...(nodes !== undefined && { nodes: Number(nodes) }),
-    ...(nps !== undefined && { stats: { nps: Number(nps) } }),
-    ...(refutation !== undefined && {
-      refutation: refutation.trim().split(' '),
+    ...(hashfullString !== undefined && { hashfull: Number(hashfullString) }),
+    ...(infoString !== undefined && { info: infoString }),
+    ...(multipvString !== undefined && { line: Number(multipvString) }),
+    ...(pvString !== undefined && { moves: pvString.trim().split(' ') }),
+    ...(nodesString !== undefined && { nodes: Number(nodesString) }),
+    ...(npsString !== undefined && { stats: { nps: Number(npsString) } }),
+    ...(refutationString !== undefined && {
+      refutation: refutationString.trim().split(' '),
     }),
     ...(parsedScore !== undefined && { score: parsedScore }),
-    ...(tbhits !== undefined && { tbhits: Number(tbhits) }),
-    ...(time !== undefined && { time: Number(time) }),
+    ...(tbhitsString !== undefined && { tbhits: Number(tbhitsString) }),
+    ...(timeString !== undefined && { time: Number(timeString) }),
   };
 }
 
