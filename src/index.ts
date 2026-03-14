@@ -4,13 +4,15 @@ import Options from './options.js';
 import * as parser from './parser/index.js';
 import Process from './process.js';
 
+import type { ID, InfoCommand, Option } from './types.js';
+
 type Events = {
   bestmove: { move: string | undefined; ponder?: string };
   copyprotection: string;
   error: Error;
-  id: UCI.ID;
-  info: UCI.InfoCommand;
-  option: UCI.Option;
+  id: ID;
+  info: InfoCommand;
+  option: Option;
   output: string;
   readyok: undefined;
   registration: string;
@@ -43,7 +45,7 @@ class UCI extends Emmittery<Events> {
    * Internal store of the engine id
    * @private
    */
-  #id: UCI.ID | undefined;
+  #id: ID | undefined;
 
   /**
    * Internal state of the number of lines
@@ -136,7 +138,7 @@ class UCI extends Emmittery<Events> {
     });
   }
 
-  async id(): Promise<UCI.ID> {
+  async id(): Promise<ID> {
     await this.#ready;
 
     if (!this.#id) {

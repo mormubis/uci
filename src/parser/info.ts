@@ -1,5 +1,7 @@
 import extract from './extract.js';
 
+import type { InfoCommand, Score } from '../types.js';
+
 const extractor = extract([
   'cpuload',
   'currline',
@@ -25,7 +27,7 @@ function parseScore(
   raw: string,
   lowerbound: string | undefined,
   upperbound: string | undefined,
-): UCI.Score | undefined {
+): Score | undefined {
   const tokens = raw.trim().split(' ');
   const kind = tokens[0];
 
@@ -62,7 +64,7 @@ function parseScore(
   return { type: 'mate', value };
 }
 
-function info(value: string): UCI.InfoCommand {
+function info(value: string): InfoCommand {
   const {
     cpuload,
     currline,

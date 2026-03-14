@@ -1,12 +1,13 @@
 import { z } from 'zod';
 
+import type { Option } from './types.js';
 import type { ZodTypeAny } from 'zod';
 
 class Options {
   validators = new Map<string, ZodTypeAny>();
   values = new Map<string, unknown>();
 
-  define(key: string, definition: UCI.Option): void {
+  define(key: string, definition: Option): void {
     if (this.validators.has(key)) {
       throw new Error(`Option "${key}" is already defined.`);
     }
