@@ -149,6 +149,12 @@ describe('info', () => {
     });
   });
 
+  it('parses a lowerbound score regardless of token order', () => {
+    expect(info('score lowerbound cp -30')).toMatchObject({
+      score: { bound: 'lower', type: 'cp', value: -0.3 },
+    });
+  });
+
   it('parses depth with seldepth as an object', () => {
     expect(info('depth 12 seldepth 18')).toMatchObject({
       depth: { selective: 18, total: 12 },

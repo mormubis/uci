@@ -9,7 +9,6 @@ const extractor = extract([
   'currmovenumber',
   'depth',
   'hashfull',
-  'lowerbound',
   'multipv',
   'nodes',
   'nps',
@@ -20,7 +19,6 @@ const extractor = extract([
   'string',
   'tbhits',
   'time',
-  'upperbound',
 ]);
 
 function asString(v: string | string[] | undefined): string | undefined {
@@ -31,19 +29,21 @@ function asString(v: string | string[] | undefined): string | undefined {
   return Array.isArray(v) ? v.join(' ') : v;
 }
 
-function parseScore(
-  raw: string,
-  lowerbound: string | undefined,
-  upperbound: string | undefined,
-): Score | undefined {
-  const tokens = raw.trim().split(' ');
-  const kind = tokens[0];
+function parseScore(raw: string): Score | undefined {
+  const tokens = raw.trim().split(/\s+/);
+  const hasLowerbound = tokens.includes('lowerbound');
+  const hasUpperbound = tokens.includes('upperbound');
+  const remaining = tokens.filter(
+    (t) => t !== 'lowerbound' && t !== 'upperbound',
+  );
+
+  const kind = remaining[0];
 
   if (kind !== 'cp' && kind !== 'mate') {
     return undefined;
   }
 
-  const rawValue = tokens[1];
+  const rawValue = remaining[1];
 
   if (rawValue === undefined) {
     return undefined;
@@ -58,11 +58,11 @@ function parseScore(
   const value = kind === 'cp' ? numeric / 100 : numeric;
 
   if (kind === 'cp') {
-    if (lowerbound !== undefined) {
+    if (hasLowerbound) {
       return { bound: 'lower', type: 'cp', value };
     }
 
-    if (upperbound !== undefined) {
+    if (hasUpperbound) {
       return { bound: 'upper', type: 'cp', value };
     }
 
@@ -80,7 +80,6 @@ function info(value: string): InfoCommand {
     currmovenumber,
     depth,
     hashfull,
-    lowerbound,
     multipv,
     nodes,
     nps,
@@ -91,14 +90,10 @@ function info(value: string): InfoCommand {
     string,
     tbhits,
     time,
-    upperbound,
   } = extractor(value);
 
-  const scoreString = asString(score);
   const parsedScore =
-    scoreString === undefined
-      ? undefined
-      : parseScore(scoreString, asString(lowerbound), asString(upperbound));
+    score === undefined || Array.isArray(score) ? undefined : parseScore(score);
 
   const cpuloadString = asString(cpuload);
   const currlineString = asString(currline);
