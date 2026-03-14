@@ -1,12 +1,12 @@
 import Emittery from 'emittery';
 import * as process from 'node:child_process';
 
-type Events = {
+interface Events {
   disconnect: undefined;
   error: Error;
   exit: number;
   line: string;
-};
+}
 
 class Process extends Emittery<Events> {
   private buffer = '';

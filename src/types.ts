@@ -17,30 +17,32 @@ type OneOf<
 
 type OnlyFirst<F, S> = F & { [Key in keyof Omit<S, keyof F>]?: never };
 
-type Value<T> = {
+interface Value<T> {
   default: T;
   value?: T;
-};
+}
 
-type Type<T> = {
+interface Type<T> {
   type: T;
-};
+}
 
 type Button = Value<void> & Type<'button'>;
 type Check = Value<boolean> & Type<'check'>;
 type Combo = Value<string> & Type<'combo'> & { var: string[] };
 type Spin = Value<number> & Type<'spin'> & { max?: number; min?: number };
 type Stringy = Value<string> & Type<'string'>;
-type Name = { name: string };
+interface Name {
+  name: string;
+}
 
 /** Options exposed by a UCI engine */
 export type Option = OneOf<[Button, Check, Combo, Spin, Stringy]> & Name;
 
 /** Engine identity (name + author) */
-export type ID = {
+export interface ID {
   author: string;
   name: string;
-};
+}
 
 /** Score from the engine — centipawns or mate distance, with optional bound */
 export type Score =
@@ -50,7 +52,7 @@ export type Score =
   | { bound?: never; type: 'mate'; value: number };
 
 /** Information emitted by the engine via `info` command */
-export type InfoCommand = {
+export interface InfoCommand {
   cpuload?: number;
   current?: { line?: string[]; move?: string; number?: number };
   depth?: number | { selective: number; total: number };
@@ -64,4 +66,4 @@ export type InfoCommand = {
   stats?: { nps?: number };
   tbhits?: number;
   time?: number;
-};
+}

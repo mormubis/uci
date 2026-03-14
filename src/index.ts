@@ -6,7 +6,7 @@ import Process from './process.js';
 
 import type { ID, InfoCommand, Option } from './types.js';
 
-type Events = {
+interface Events {
   bestmove: { move: string | undefined; ponder?: string };
   copyprotection: string;
   error: Error;
@@ -17,12 +17,12 @@ type Events = {
   readyok: undefined;
   registration: string;
   uciok: undefined;
-};
+}
 
-type RegisterOptions = {
+interface RegisterOptions {
   code: string;
   name: string;
-};
+}
 
 const TIMEOUT = 5000;
 
