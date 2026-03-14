@@ -249,8 +249,13 @@ class UCI extends Emmittery<Events> {
 
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
     let unsubscribeExit: (() => void) | undefined;
+    let unsubscribeReadyok: (() => void) | undefined;
 
-    const readyok = this.once('readyok');
+    const readyok = new Promise<void>((ok) => {
+      unsubscribeReadyok = this.on('readyok', () => {
+        ok();
+      });
+    });
 
     const exit = new Promise<never>((_, ko) => {
       unsubscribeExit = this.process.on('exit', () => {
@@ -274,6 +279,7 @@ class UCI extends Emmittery<Events> {
     } finally {
       clearTimeout(timeoutId);
       unsubscribeExit?.();
+      unsubscribeReadyok?.();
     }
   }
 }

@@ -80,7 +80,9 @@ describe('UCI', () => {
     // Start a ready() race
     void (uci as unknown as { ready: () => Promise<void> }).ready();
 
-    await new Promise<void>((resolve) => setTimeout(resolve, 20));
+    // Give ready() one tick to register its exit listener
+    await Promise.resolve();
+
     const before = errors.length;
 
     // Simulate engine crash
