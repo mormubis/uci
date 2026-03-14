@@ -155,6 +155,12 @@ describe('info', () => {
     });
   });
 
+  it('parses an upperbound score regardless of token order', () => {
+    expect(info('score upperbound cp 50')).toMatchObject({
+      score: { bound: 'upper', type: 'cp', value: 0.5 },
+    });
+  });
+
   it('parses depth with seldepth as an object', () => {
     expect(info('depth 12 seldepth 18')).toMatchObject({
       depth: { selective: 18, total: 12 },
