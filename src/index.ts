@@ -195,7 +195,15 @@ class UCI extends Emmittery<Events> {
   }
 
   async start(options: Record<string, unknown> = {}): Promise<void> {
-    await this.#ready;
+    try {
+      await this.#ready;
+    } catch (error: unknown) {
+      void this.emit(
+        'error',
+        error instanceof Error ? error : new Error(String(error)),
+      );
+      return;
+    }
 
     for (const [key, value] of Object.entries({
       MultiPV: this.#lines,
