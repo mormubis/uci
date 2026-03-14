@@ -1,16 +1,15 @@
-import * as process from 'node:child_process';
-
 import Emittery from 'emittery';
+import * as process from 'node:child_process';
 
 type Events = {
   disconnect: undefined;
-  exit: number;
   error: Error;
+  exit: number;
   line: string;
 };
 
 class Process extends Emittery<Events> {
-  private buffer: string = '';
+  private buffer = '';
   private child: process.ChildProcessWithoutNullStreams;
 
   constructor(path: string) {
@@ -27,23 +26,27 @@ class Process extends Emittery<Events> {
       const lines = this.buffer.split('\n');
       this.buffer = lines.pop() ?? '';
 
-      lines.forEach((line) => this.emit('line', line));
+      for (const line of lines) {
+        this.emit('line', line);
+      }
     });
     this.child.stderr.on('data', (data) => this.emit('error', data));
   }
 
-  disconnect() {
+  disconnect(): void {
     this.child.disconnect();
   }
 
-  kill() {
+  kill(): void {
     this.child.kill();
   }
 
   async write(input: string): Promise<void> {
     return new Promise((ok, ko) => {
-      this.child.stdin.write(input, 'utf-8', (error) => {
-        if (error) return ko(error);
+      this.child.stdin.write(input, 'utf8', (error) => {
+        if (error) {
+          return ko(error);
+        }
         ok();
       });
     });

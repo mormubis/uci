@@ -1,5 +1,5 @@
-import identity from './identity.js';
 import extract from './extract.js';
+import identity from './identity.js';
 import noop from './noop.js';
 
 const copyprotection = identity;
