@@ -91,7 +91,6 @@ These are all the command the engine gets from the interface.
   engine that registration will be done later. This command should always be
   sent if the engine has sent "registration error" at program startup. The
   following tokens are allowed:
-
   - later the user doesn't want to register the engine now.
   - name <x> the engine should be registered with the name <x>
   - code <y> the engine should be registered with the code <y> Example:
@@ -119,7 +118,6 @@ These are all the command the engine gets from the interface.
   command. There are a number of commands that can follow this command, all will
   be sent in the same string. If one command is not sent its value should be
   interpreted as it would not influence the search.
-
   - searchmoves <move1> .... <movei> restrict search to this moves only Example:
     After "position startpos" and "go infinite searchmoves e2e4 d2d4" the engine
     should only search the two moves e2e4 and d2d4 in the initial position.
@@ -158,7 +156,6 @@ These are all the command the engine gets from the interface.
 ## Engine to GUI:
 
 - id
-
   - name <x> this must be sent after receiving the "uci" command to identify the
     engine, e.g. "id name Shredder X.Y\n"
   - author <x> this must be sent after receiving the "uci" command to identify
@@ -218,7 +215,6 @@ These are all the command the engine gets from the interface.
   time 1242 nodes 2124 nps 34928 pv e2e4 e7e5 g1f3" I suggest to start sending
   "currmove", "currmovenumber", "currline" and "refutation" only after one
   second to avoid too much traffic. Additional info:
-
   - depth <x> search depth in plies
   - seldepth <x> selective search depth in plies, if the engine sends seldepth
     there must also be a "depth" present in the same string.
@@ -272,7 +268,6 @@ These are all the command the engine gets from the interface.
   default value. For all allowed combinations see the examples below, as some
   combinations of this tokens don't make sense. One string will be sent for each
   parameter.
-
   - name <id> The option has the name id. Certain options have a fixed value for
     <id>, which means that the semantics of this option is fixed. Usually those
     options should not be displayed in the normal engine options window of the
@@ -282,7 +277,6 @@ These are all the command the engine gets from the interface.
     GUI. All those certain options have the prefix "UCI*" except for the first 6
     options below. If the GUI gets an unknown Option with the prefix "UCI\_", it
     should just ignore it and not display it in the engine's options dialog.
-
     - <id> = Hash, type is spin the value in MB for memory for hash tables can
       be changed, this should be answered with the first "setoptions" command at
       program boot if the engine has sent the appropriate "option name Hash"
