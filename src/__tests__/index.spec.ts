@@ -100,6 +100,59 @@ describe('UCI', () => {
     expect(exitErrors.length).toBeGreaterThan(0);
   });
 
+  it('debug(true) sends "debug on"', async () => {
+    const uci = new UCI('/invalid/path');
+    const spy = vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    );
+
+    await uci.debug(true).catch(vi.fn());
+
+    expect(spy).toHaveBeenCalledWith('debug on');
+  });
+
+  it('debug(false) sends "debug off"', async () => {
+    const uci = new UCI('/invalid/path');
+    const spy = vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    );
+
+    await uci.debug(false).catch(vi.fn());
+
+    expect(spy).toHaveBeenCalledWith('debug off');
+  });
+
+  it('off() unsubscribes a listener', async () => {
+    const uci = new UCI('/invalid/path');
+    const handler = vi.fn();
+
+    uci.on('output', handler);
+    uci.off('output', handler);
+
+    // Trigger an output event via ingest (unknown command routes to 'output')
+    await (
+      uci as unknown as { ingest: (line: string) => Promise<void> }
+    ).ingest('unknown command');
+
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('once() resolves on the next event', async () => {
+    const uci = new UCI('/invalid/path');
+
+    const promise = uci.once('output');
+
+    // Trigger an output event via ingest
+    void (uci as unknown as { ingest: (line: string) => Promise<void> }).ingest(
+      'unknown command',
+    );
+
+    const result = await promise;
+    expect(result).toBe('unknown command');
+  });
+
   it('short-circuits on subsequent ready() calls after failure', async () => {
     const uci = new UCI('/invalid/path', { timeout: 20 });
     const errors: Error[] = [];
