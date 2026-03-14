@@ -58,7 +58,10 @@ describe('UCI', () => {
       errors.push(error);
     });
 
-    // Wait long enough for both the spawn error AND the ready() timeout
+    // Call ready() directly — it will send isready and then time out
+    void (uci as unknown as { ready: () => Promise<void> }).ready();
+
+    // Wait for the timeout to fire
     await new Promise<void>((resolve) => setTimeout(resolve, 150));
 
     const timeoutErrors = errors.filter((error) =>
@@ -74,11 +77,13 @@ describe('UCI', () => {
       errors.push(error);
     });
 
-    // Wait for constructor errors to settle
-    await new Promise<void>((resolve) => setTimeout(resolve, 50));
+    // Start a ready() race
+    void (uci as unknown as { ready: () => Promise<void> }).ready();
+
+    await new Promise<void>((resolve) => setTimeout(resolve, 20));
     const before = errors.length;
 
-    // Emit exit on the internal process to simulate engine crash
+    // Simulate engine crash
     void (
       uci as unknown as {
         process: { emit: (event: string, value: number) => Promise<void> };
@@ -100,13 +105,16 @@ describe('UCI', () => {
       errors.push(error);
     });
 
-    // Wait for the first timeout failure to set #errored
+    // Trigger a ready() that will time out
+    void (uci as unknown as { ready: () => Promise<void> }).ready();
+
+    // Wait for timeout to set #errored
     await new Promise<void>((resolve) => setTimeout(resolve, 150));
 
     const before = errors.length;
     expect(before).toBeGreaterThan(0);
 
-    // Call ready() directly — should short-circuit and emit same error immediately
+    // Second call should short-circuit and emit same error immediately
     await (uci as unknown as { ready: () => Promise<void> }).ready();
 
     expect(errors.length).toBeGreaterThan(before);

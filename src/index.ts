@@ -103,7 +103,7 @@ class UCI extends Emmittery<Events> {
     });
 
     // Set a promise to wait for the engine to be ready
-    this.#ready = new Promise<void>((ok, ko) => {
+    this.#ready = new Promise((ok, ko) => {
       this.on('uciok', () => {
         ok();
       });
@@ -113,13 +113,11 @@ class UCI extends Emmittery<Events> {
 
       // Starts the communication protocol
       this.execute('uci').catch(ko);
-    }).catch(() => {
-      // Rejection is surfaced via the error event; suppress unhandled rejection.
     });
 
-    // Immediately start waiting for readyok so that process exit or timeout
-    // during the handshake is caught and surfaced as an error event.
-    void this.ready();
+    // Prevent unhandled rejection when no caller awaits #ready.
+    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+    void this.#ready.catch((_error: unknown) => {});
   }
 
   get depth(): number | 'infinite' {
