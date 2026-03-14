@@ -9,10 +9,8 @@ function bestmove(value: string): {
   const { default: move, ponder } = extractor(value);
 
   return {
-    move: Array.isArray(move) ? move.join(' ') : move,
-    ...(ponder && {
-      ponder: Array.isArray(ponder) ? ponder.join(' ') : ponder,
-    }),
+    move: move as string | undefined,
+    ...(ponder && { ponder: ponder as string }),
   };
 }
 
