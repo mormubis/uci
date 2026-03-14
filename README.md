@@ -4,6 +4,7 @@
 [![Test](https://github.com/mormubis/uci/actions/workflows/test.yml/badge.svg)](https://github.com/mormubis/uci/actions/workflows/test.yml)
 [![Coverage](https://codecov.io/gh/mormubis/uci/branch/main/graph/badge.svg)](https://codecov.io/gh/mormubis/uci)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![API Docs](https://img.shields.io/badge/API-docs-blue.svg)](https://mormubis.github.io/uci/)
 
 **UCI** is a TypeScript wrapper for the
 [Universal Chess Interface](https://www.wbec-ridderkerk.nl/html/UCIProtocol.html)
@@ -199,6 +200,10 @@ engine.on('uciok',          () => void)
   | { type: 'string', default: string }
 )
 ```
+
+## API
+
+Full API reference is available at https://mormubis.github.io/uci/
 
 ## Contributing
 
