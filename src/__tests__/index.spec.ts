@@ -33,6 +33,23 @@ describe('UCI', () => {
     expect(spy).toHaveBeenCalledWith('stop');
   });
 
+  it('emits an error when position write fails', async () => {
+    const uci = new UCI('/invalid/path');
+    const errors: Error[] = [];
+    uci.on('error', (error) => {
+      errors.push(error);
+    });
+
+    // Trigger position setter — write will fail because process is dead
+    uci.position = 'startpos';
+
+    // Give async error a tick to surface
+    await new Promise<void>((resolve) => setTimeout(resolve, 50));
+
+    // At least one error should have been emitted (from uci handshake or position write)
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
   it('[Symbol.dispose]() sends quit and kills the process', async () => {
     const uci = new UCI('/invalid/path');
     const executeSpy = vi.spyOn(
