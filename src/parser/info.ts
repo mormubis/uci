@@ -98,11 +98,12 @@ function info(value: string): UCI.InfoCommand {
         ...(currmovenumber !== undefined && { number: Number(currmovenumber) }),
       },
     }),
-    ...(depth !== undefined && seldepth !== undefined
-      ? { depth: { selective: Number(seldepth), total: Number(depth) } }
-      : (depth === undefined
-        ? {}
-        : { depth: Number(depth) })),
+    ...(depth !== undefined && {
+      depth:
+        seldepth === undefined
+          ? Number(depth)
+          : { selective: Number(seldepth), total: Number(depth) },
+    }),
     ...(hashfull !== undefined && { hashfull: Number(hashfull) }),
     ...(string !== undefined && { info: string }),
     ...(multipv !== undefined && { line: Number(multipv) }),
