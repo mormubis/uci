@@ -27,7 +27,7 @@
     "vitest": "^4.0.1"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "exports": {
     ".": {
@@ -65,7 +65,7 @@
     "lint:ci": "pnpm run lint:style --max-warnings 0 && pnpm run lint:types",
     "lint:style": "eslint \"src/**/*.{ts,tsx}\" \"*.mjs\" --fix",
     "lint:types": "tsc --noEmit --project tsconfig.json",
-    "prepare": "husky",
+    "prepare": "pnpm run build",
     "test": "vitest run",
     "test:coverage": "pnpm run test --coverage",
     "test:watch": "pnpm run test --watch"
