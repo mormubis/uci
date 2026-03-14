@@ -1,4 +1,4 @@
-import Emmittery from 'emittery';
+import Emittery from 'emittery';
 
 import Options from './options.js';
 import * as parser from './parser/index.js';
@@ -26,7 +26,7 @@ interface RegisterOptions {
 
 const TIMEOUT = 5000;
 
-class UCI extends Emmittery<Events> {
+class UCI {
   /**
    * Internal store of the engine options
    * @private
@@ -40,6 +40,12 @@ class UCI extends Emmittery<Events> {
    * @private
    */
   #depth: number | 'infinite' = 'infinite';
+
+  /**
+   * Internal event emitter.
+   * @private
+   */
+  readonly #emitter = new Emittery<Events>();
 
   /**
    * Stores the first error that caused ready() to fail.
@@ -85,26 +91,24 @@ class UCI extends Emmittery<Events> {
   readonly #timeout: number;
 
   constructor(path: string, { timeout }: { timeout?: number } = {}) {
-    super();
-
     this.#timeout = timeout ?? TIMEOUT;
     this.process = new Process(path);
 
     this.process.on('line', this.ingest.bind(this));
-    this.process.on('error', (value) => this.emit('error', value));
+    this.process.on('error', (value) => this.#emitter.emit('error', value));
 
     // Store the ID of the engine
-    this.on('id', (id) => {
+    this.#emitter.on('id', (id) => {
       this.#id = id;
     });
     // Define the available options
-    this.on('option', (option) => {
+    this.#emitter.on('option', (option) => {
       this.options.define(option.name, option);
     });
 
     // Set a promise to wait for the engine to be ready
     this.#ready = new Promise((ok, ko) => {
-      this.on('uciok', () => {
+      this.#emitter.on('uciok', () => {
         ok();
       });
 
@@ -152,9 +156,13 @@ class UCI extends Emmittery<Events> {
     this.process.kill();
   }
 
+  debug(on: boolean): Promise<void> {
+    return this.execute(`debug ${on ? 'on' : 'off'}`);
+  }
+
   async execute(command: string): Promise<void> {
     await this.process.write(`${command}\n`).catch((error: unknown) => {
-      void this.emit(
+      void this.#emitter.emit(
         'error',
         error instanceof Error ? error : new Error(String(error)),
       );
@@ -181,6 +189,24 @@ class UCI extends Emmittery<Events> {
     await this.go();
   }
 
+  off<K extends keyof Events>(
+    event: K,
+    listener: (data: Events[K]) => void | Promise<void>,
+  ): void {
+    this.#emitter.off(event, listener);
+  }
+
+  on<K extends keyof Events>(
+    event: K,
+    listener: (data: Events[K]) => void | Promise<void>,
+  ): () => void {
+    return this.#emitter.on(event, listener);
+  }
+
+  once<K extends keyof Events>(event: K): Promise<Events[K]> {
+    return this.#emitter.once(event);
+  }
+
   async register(options?: RegisterOptions): Promise<void> {
     if (!options) {
       return this.execute('register later');
@@ -198,7 +224,7 @@ class UCI extends Emmittery<Events> {
     try {
       await this.#ready;
     } catch (error: unknown) {
-      void this.emit(
+      void this.#emitter.emit(
         'error',
         error instanceof Error ? error : new Error(String(error)),
       );
@@ -238,7 +264,7 @@ class UCI extends Emmittery<Events> {
 
     if (!(key in parser)) {
       // If the command is not in the parser, emit it as output
-      await this.emit('output', input);
+      await this.#emitter.emit('output', input);
       return;
     }
 
@@ -246,12 +272,12 @@ class UCI extends Emmittery<Events> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any, import-x/namespace
     const payload = (parser[command] as (v: string) => any)(value);
 
-    await this.emit(command as keyof Events, payload);
+    await this.#emitter.emit(command as keyof Events, payload);
   }
 
   private async ready(): Promise<void> {
     if (this.#errored) {
-      void this.emit('error', this.#errored);
+      void this.#emitter.emit('error', this.#errored);
       return;
     }
 
@@ -260,7 +286,7 @@ class UCI extends Emmittery<Events> {
     let unsubscribeReadyok: (() => void) | undefined;
 
     const readyok = new Promise<void>((ok) => {
-      unsubscribeReadyok = this.on('readyok', () => {
+      unsubscribeReadyok = this.#emitter.on('readyok', () => {
         ok();
       });
     });
@@ -283,7 +309,7 @@ class UCI extends Emmittery<Events> {
       await Promise.race([readyok, exit, timeout]);
     } catch (error: unknown) {
       this.#errored = error instanceof Error ? error : new Error(String(error));
-      void this.emit('error', this.#errored);
+      void this.#emitter.emit('error', this.#errored);
     } finally {
       clearTimeout(timeoutId);
       unsubscribeExit?.();
