@@ -44,11 +44,11 @@
   "homepage": "https://github.com/mormubis/uci#readme",
   "keywords": [
     "chess",
+    "chess engine",
     "fide",
     "interface",
     "uci",
-    "universal chess interface",
-    "chess engine"
+    "universal chess interface"
   ],
   "license": "MIT",
   "main": "dist/index.js",
