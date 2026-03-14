@@ -129,6 +129,11 @@ class UCI extends Emmittery<Events> {
     this.ready().then(() => this.execute(`position ${input}`));
   }
 
+  async [Symbol.dispose](): Promise<void> {
+    await this.execute('quit');
+    this.process.kill();
+  }
+
   async execute(command: string): Promise<void> {
     await this.process.write(`${command}\n`).catch((error: unknown) => {
       void this.emit(
@@ -186,7 +191,7 @@ class UCI extends Emmittery<Events> {
   }
 
   stop(): Promise<void> {
-    return this.execute('quit');
+    return this.execute('stop');
   }
 
   private async go(): Promise<void> {
