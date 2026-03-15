@@ -21,11 +21,16 @@ managing process lifecycle, and coordinating asynchronous handshakes. This
 library handles all of that:
 
 - **Full protocol compliance** — implements the complete UCI spec: `uci`,
-  `isready`, `position`, `go`, `stop`, `setoption`, and `register`. Engine
-  output (`id`, `option`, `info`, `bestmove`) is parsed into typed objects.
+  `isready`, `ucinewgame`, `position`, `go`, `stop`, `setoption`, `register`,
+  and `ponderhit`. Engine output (`id`, `option`, `info`, `bestmove`) is parsed
+  into typed objects.
+- **Time controls** — pass `wtime`, `btime`, `movetime`, `depth`, and more as a
+  typed `GoOptions` object.
+- **Pondering** — first-class `ponder()` and `ponderhit()` with correct state
+  tracking.
 - **Typed `info` events** — search information is fully parsed: depth, selective
   depth, score (centipawns or mate distance with bound flags), PV moves, nodes,
-  NPS, time, hashfull, and CPU load.
+  NPS, time, hashfull, CPU load, and endgame tablebase hits.
 - **Typed `score`** — scores are a discriminated union (`cp` or `mate`, with
   optional `lowerbound`/`upperbound`), not a raw string or plain number.
 - **Engine options** — options advertised by the engine are validated before
@@ -59,27 +64,32 @@ await engine.start();
 ### Creating an engine
 
 ```typescript
-new UCI(path: string, options?: { timeout?: number })
+new UCI(path: string, options?: { config?: Record<string, unknown>; timeout?: number })
 ```
 
 `path` is the path to the UCI engine binary. `timeout` (default 5000 ms) is how
 long to wait for the engine to respond to the initial `uci` command before
-emitting an error.
+emitting an error. `config` is an optional map of `setoption` values applied
+once after the UCI handshake.
 
 ```typescript
 const engine = new UCI('/usr/bin/stockfish');
 const engine = new UCI('./engines/lc0', { timeout: 10_000 });
+const engine = new UCI('/usr/bin/stockfish', {
+  config: { Hash: 256, Threads: 4 },
+});
 ```
 
 ### Starting a search
 
 ```typescript
-await engine.start(options?: Record<string, unknown>): Promise<void>
+await engine.start(options?: GoOptions): Promise<void>
 ```
 
-Waits for the engine to be ready, applies any `setoption` overrides, then sends
-`go`. Listen for `info` events during the search and `bestmove` when it
-finishes.
+Waits for the engine to be ready, applies `setoption` values from the
+constructor `config`, then sends `go`. Accepts an optional `GoOptions` object
+for time controls and search limits. Listen for `info` events during the search
+and `bestmove` when it finishes.
 
 ```typescript
 engine.on('info', (info) => {
@@ -95,23 +105,84 @@ engine.on('bestmove', ({ move, ponder }) => {
   console.log(`Best: ${move}, ponder: ${ponder}`);
 });
 
-await engine.start({ Threads: 4, Hash: 256 });
+// Infinite search (default)
+await engine.start();
+
+// Fixed time per move
+await engine.start({ movetime: 1000 });
+
+// Clock-based (standard game)
+await engine.start({ wtime: 60_000, btime: 60_000, winc: 1000, binc: 1000 });
+
+// Fixed depth
+await engine.start({ depth: 20 });
+```
+
+### `GoOptions`
+
+All fields are optional. When none are set, the engine searches infinitely until
+`stop()` is called.
+
+```typescript
+interface GoOptions {
+  binc?: number; // black increment per move (ms)
+  btime?: number; // black remaining time (ms)
+  depth?: number; // search to this depth (overrides engine.depth)
+  mate?: number; // search for mate in N moves
+  movestogo?: number; // moves until next time control
+  movetime?: number; // search exactly N ms
+  nodes?: number; // search exactly N nodes
+  searchmoves?: string[]; // restrict search to these moves
+  winc?: number; // white increment per move (ms)
+  wtime?: number; // white remaining time (ms)
+}
 ```
 
 ### Sending moves
 
 ```typescript
-await engine.move(move: string): Promise<void>
+await engine.move(move: string, options?: GoOptions): Promise<void>
 ```
 
-Sends a move in long algebraic notation and restarts the search from the new
-position. Moves accumulate — call `reset()` to start a new game.
+Sends a move in long algebraic notation, stops the current search, updates the
+position, and restarts the search. Moves accumulate — call `reset()` to start a
+new game. Accepts the same `GoOptions` as `start()`.
 
 ```typescript
 await engine.move('e2e4');
-await engine.move('e7e5');
+await engine.move('e7e5', { movetime: 500 });
 await engine.move('e7e8q'); // promotion
 ```
+
+### Pondering
+
+Pondering lets the engine think on the opponent's time.
+
+```typescript
+// After receiving bestmove with a ponder suggestion, start pondering
+engine.on('bestmove', async ({ move, ponder }) => {
+  if (ponder) {
+    await engine.ponder(ponder);
+  }
+});
+
+// Opponent played the predicted move — switch to normal search
+await engine.ponderhit();
+
+// Opponent played a different move — stop pondering, then send the actual move
+await engine.stop();
+await engine.move('d7d5');
+```
+
+```typescript
+await engine.ponder(move: string, options?: GoOptions): Promise<void>
+await engine.ponderhit(): Promise<void>
+```
+
+`ponder()` sends `go ponder` with the speculative opponent move. Calling it
+while already pondering emits an error. `ponderhit()` commits the ponder move
+and switches the engine to normal search; calling it when not pondering emits an
+error.
 
 ### Setting position
 
@@ -122,18 +193,19 @@ engine.position = 'fen <fenstring>'; // custom position
 
 Assigning `position` resets the move list and sends `position` to the engine.
 
-### Configuring search
+### Configuring search defaults
 
 ```typescript
-engine.depth = 10; // search to depth 10 (default: 'infinite')
-engine.lines = 3; // return top 3 lines via MultiPV (default: 1)
+engine.depth = 10; // default depth for go (overridden by GoOptions.depth)
+engine.lines = 3; // MultiPV — return top N lines (default: 1)
 ```
 
 ### Stopping and resetting
 
 ```typescript
-await engine.stop(): Promise<void>   // sends 'quit', terminates the process
-await engine.reset(): Promise<void>  // resets to startpos
+await engine.stop(): Promise<void>   // halts the current search (engine stays alive)
+await engine.reset(): Promise<void>  // sends ucinewgame + resets to startpos
+await engine[Symbol.dispose](): Promise<void> // sends quit + kills the process
 ```
 
 ### Low-level access
@@ -173,9 +245,10 @@ engine.on('uciok',          () => void)
   moves?:      string[],                        // pv move list
   nodes?:      number,
   refutation?: string[],
+  sbhits?:     number,                          // Shredder endgame DB hits
   score?:      Score,
   stats?:      { nps?: number },
-  tbhits?:     number,
+  tbhits?:     number,                          // endgame tablebase hits
   time?:       number,                          // ms
 }
 ```

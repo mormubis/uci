@@ -25,8 +25,6 @@ and this project adheres to
 - `ponderhit()` — commits ponder move, switches engine from ponder to normal
   search
 - `sbhits` field on `InfoCommand` — Shredder endgame database hits
-- `reset()` now sends `ucinewgame` before `position startpos`
-- `stop()` now clears pondering state
 
 ### Changed
 
@@ -34,6 +32,8 @@ and this project adheres to
   `GoOptions` (search parameters) — **breaking change**
 - Engine `setoption` overrides now passed via constructor `config` option
   instead of `start()` argument
+- `reset()` now sends `ucinewgame` before `position startpos`
+- `stop()` now clears pondering state
 
 ### Migration from v2
 
