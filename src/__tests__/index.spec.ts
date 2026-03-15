@@ -173,6 +173,94 @@ describe('UCI', () => {
     expect(calls[1]).toBe('position startpos');
   });
 
+  it('start() sends go with movetime when GoOptions.movetime is set', async () => {
+    const uci = new UCI('/invalid/path');
+    const calls: string[] = [];
+    vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    ).mockImplementation(async (cmd) => {
+      calls.push(cmd);
+    });
+
+    // skip ready() by mocking it
+    vi.spyOn(
+      uci as unknown as { ready: () => Promise<void> },
+      'ready',
+    ).mockResolvedValue();
+
+    await uci.start({ movetime: 1000 });
+
+    expect(calls.some((c) => c.startsWith('go'))).toBe(true);
+    const goCall = calls.find((c) => c.startsWith('go'))!;
+    expect(goCall).toContain('movetime 1000');
+  });
+
+  it('start() sends go with wtime/btime when provided', async () => {
+    const uci = new UCI('/invalid/path');
+    const calls: string[] = [];
+    vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    ).mockImplementation(async (cmd) => {
+      calls.push(cmd);
+    });
+    vi.spyOn(
+      uci as unknown as { ready: () => Promise<void> },
+      'ready',
+    ).mockResolvedValue();
+
+    await uci.start({ wtime: 60_000, btime: 60_000, winc: 1000, binc: 1000 });
+
+    const goCall = calls.find((c) => c.startsWith('go'))!;
+    expect(goCall).toContain('wtime 60000');
+    expect(goCall).toContain('btime 60000');
+    expect(goCall).toContain('winc 1000');
+    expect(goCall).toContain('binc 1000');
+  });
+
+  it('constructor config is applied as setoptions before go in start()', async () => {
+    const uci = new UCI('/invalid/path', { config: { Hash: 64 } });
+    const calls: string[] = [];
+    vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    ).mockImplementation(async (cmd) => {
+      calls.push(cmd);
+    });
+    vi.spyOn(
+      uci as unknown as { ready: () => Promise<void> },
+      'ready',
+    ).mockResolvedValue();
+
+    await uci.start();
+
+    const setoption = calls.find((c) => c.includes('setoption name Hash'));
+    const go = calls.find((c) => c.startsWith('go'));
+    expect(setoption).toBeDefined();
+    expect(go).toBeDefined();
+    expect(calls.indexOf(setoption!)).toBeLessThan(calls.indexOf(go!));
+  });
+
+  it('start() sends go infinite when no GoOptions are set', async () => {
+    const uci = new UCI('/invalid/path');
+    vi.spyOn(
+      uci as unknown as { ready: () => Promise<void> },
+      'ready',
+    ).mockResolvedValue();
+    const executeSpy = vi
+      .spyOn(
+        uci as unknown as { execute: (cmd: string) => Promise<void> },
+        'execute',
+      )
+      .mockResolvedValue();
+
+    await uci.start();
+
+    const goCall = executeSpy.mock.calls.find(([cmd]) => cmd.startsWith('go'));
+    expect(goCall?.[0]).toBe('go infinite');
+  });
+
   it('short-circuits on subsequent ready() calls after failure', async () => {
     const uci = new UCI('/invalid/path', { timeout: 20 });
     const errors: Error[] = [];

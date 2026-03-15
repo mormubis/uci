@@ -4,7 +4,7 @@ import Options from './options.js';
 import * as parser from './parser/index.js';
 import Process from './process.js';
 
-import type { Events, ID } from './types.js';
+import type { Events, GoOptions, ID } from './types.js';
 
 interface RegisterOptions {
   code: string;
@@ -21,6 +21,12 @@ class UCI {
   private readonly options = new Options();
 
   private process: Process;
+
+  /**
+   * Engine setoption overrides to apply before the first go command.
+   * @private
+   */
+  readonly #config: Record<string, unknown>;
 
   /**
    * Internal state of the depth
@@ -77,8 +83,15 @@ class UCI {
    */
   readonly #timeout: number;
 
-  constructor(path: string, { timeout }: { timeout?: number } = {}) {
+  constructor(
+    path: string,
+    {
+      config = {},
+      timeout,
+    }: { config?: Record<string, unknown>; timeout?: number } = {},
+  ) {
     this.#timeout = timeout ?? TIMEOUT;
+    this.#config = config;
     this.process = new Process(path);
 
     this.process.on('line', this.ingest.bind(this));
@@ -166,14 +179,14 @@ class UCI {
     return this.#id;
   }
 
-  async move(input: string): Promise<void> {
+  async move(input: string, options: GoOptions = {}): Promise<void> {
     this.#moves.push(input);
 
     const list = this.#moves.join(' ');
 
     await this.execute('stop');
     await this.execute(`position ${this.#position} moves ${list}`);
-    await this.go();
+    await this.go(options);
   }
 
   off<K extends keyof Events>(
@@ -209,38 +222,95 @@ class UCI {
     this.position = 'startpos';
   }
 
-  async start(options: Record<string, unknown> = {}): Promise<void> {
-    try {
-      await this.#ready;
-    } catch (error: unknown) {
-      void this.#emitter.emit(
-        'error',
-        error instanceof Error ? error : new Error(String(error)),
-      );
-      return;
-    }
+  async start(options: GoOptions = {}): Promise<void> {
+    await this.ready();
 
-    for (const [key, value] of Object.entries({
+    const config: Record<string, unknown> = {
       MultiPV: this.#lines,
-      ...options,
-    })) {
-      this.options.set(key, value);
+      ...this.#config,
+    };
+
+    for (const [key, value] of Object.entries(config)) {
+      try {
+        this.options.set(key, value);
+      } catch {
+        // Option not defined locally — still send to engine
+      }
+
       await this.execute(`setoption name ${key} value ${value}`);
     }
 
-    await this.go();
+    await this.go(options);
   }
 
   stop(): Promise<void> {
     return this.execute('stop');
   }
 
-  private async go(): Promise<void> {
+  private async go(options: GoOptions = {}, ponder = false): Promise<void> {
     await this.ready();
 
+    const parts: string[] = ['go'];
+
+    if (ponder) {
+      parts.push('ponder');
+    }
+
+    if (options.searchmoves && options.searchmoves.length > 0) {
+      parts.push('searchmoves', ...options.searchmoves);
+    }
+
+    if (options.wtime !== undefined) {
+      parts.push('wtime', String(options.wtime));
+    }
+
+    if (options.btime !== undefined) {
+      parts.push('btime', String(options.btime));
+    }
+
+    if (options.winc !== undefined) {
+      parts.push('winc', String(options.winc));
+    }
+
+    if (options.binc !== undefined) {
+      parts.push('binc', String(options.binc));
+    }
+
+    if (options.movestogo !== undefined) {
+      parts.push('movestogo', String(options.movestogo));
+    }
+
     const depth =
-      this.#depth === 'infinite' ? 'infinite' : `depth ${this.#depth}`;
-    await this.execute(`go ${depth}`);
+      options.depth ?? (this.#depth === 'infinite' ? undefined : this.#depth);
+    if (depth !== undefined) {
+      parts.push('depth', String(depth));
+    }
+
+    if (options.nodes !== undefined) {
+      parts.push('nodes', String(options.nodes));
+    }
+
+    if (options.mate !== undefined) {
+      parts.push('mate', String(options.mate));
+    }
+
+    if (options.movetime !== undefined) {
+      parts.push('movetime', String(options.movetime));
+    }
+
+    const hasSearchLimit =
+      depth !== undefined ||
+      options.movetime !== undefined ||
+      options.nodes !== undefined ||
+      options.mate !== undefined ||
+      options.wtime !== undefined ||
+      options.btime !== undefined;
+
+    if (!hasSearchLimit && !ponder) {
+      parts.push('infinite');
+    }
+
+    await this.execute(parts.join(' '));
   }
 
   private async ingest(input: string): Promise<void> {
