@@ -204,6 +204,8 @@ class UCI {
   }
 
   async reset(): Promise<void> {
+    await this.ready();
+    await this.execute('ucinewgame');
     this.position = 'startpos';
   }
 

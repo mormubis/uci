@@ -153,6 +153,26 @@ describe('UCI', () => {
     expect(result).toBe('unknown command');
   });
 
+  it('reset() sends ucinewgame then position startpos', async () => {
+    const uci = new UCI('/invalid/path');
+    const calls: string[] = [];
+    vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    ).mockImplementation(async (cmd) => {
+      calls.push(cmd);
+    });
+    vi.spyOn(
+      uci as unknown as { ready: () => Promise<void> },
+      'ready',
+    ).mockResolvedValue();
+
+    await uci.reset();
+
+    expect(calls[0]).toBe('ucinewgame');
+    expect(calls[1]).toBe('position startpos');
+  });
+
   it('short-circuits on subsequent ready() calls after failure', async () => {
     const uci = new UCI('/invalid/path', { timeout: 20 });
     const errors: Error[] = [];
