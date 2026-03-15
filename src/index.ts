@@ -66,6 +66,12 @@ class UCI {
   #moves: string[] = [];
 
   /**
+   * The speculative ponder move, not yet confirmed as played.
+   * @private
+   */
+  #ponderMove: string | undefined;
+
+  /**
    * Whether the engine is currently in ponder mode.
    * @private
    */
@@ -214,8 +220,10 @@ class UCI {
   }
 
   async ponder(move: string, options: GoOptions = {}): Promise<void> {
-    this.#moves.push(move);
-    const list = this.#moves.join(' ');
+    await this.execute('stop');
+
+    this.#ponderMove = move;
+    const list = [...this.#moves, move].join(' ');
 
     await this.execute(`position ${this.#position} moves ${list}`);
     this.#pondering = true;
@@ -229,6 +237,11 @@ class UCI {
         new Error('ponderhit() called when not pondering'),
       );
       return;
+    }
+
+    if (this.#ponderMove !== undefined) {
+      this.#moves.push(this.#ponderMove);
+      this.#ponderMove = undefined;
     }
 
     this.#pondering = false;
@@ -284,6 +297,7 @@ class UCI {
 
   stop(): Promise<void> {
     this.#pondering = false;
+    this.#ponderMove = undefined;
     return this.execute('stop');
   }
 
