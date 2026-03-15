@@ -8,6 +8,15 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-03-15
+
+### Fixed
+
+- README updated to reflect v3.0.0 API (constructor `config` option,
+  `GoOptions`, pondering, corrected `stop()`/`reset()` descriptions, `sbhits` in
+  `InfoCommand`)
+- CHANGELOG: moved `reset()` and `stop()` entries from `Added` to `Changed`
+
 ## [3.0.0] - 2026-03-15
 
 ### Added
