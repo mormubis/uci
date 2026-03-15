@@ -8,6 +8,47 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-03-15
+
+### Added
+
+- `GoOptions` interface — typed parameters for `go` command: `wtime`, `btime`,
+  `winc`, `binc`, `movestogo`, `movetime`, `nodes`, `mate`, `searchmoves`,
+  `depth`
+- `start(options?: GoOptions)` — time controls and search limits as typed
+  options
+- `move(input, options?: GoOptions)` — per-move time controls forwarded to `go`
+- Constructor `config` option — `setoption` overrides applied once after UCI
+  handshake: `new UCI(path, { config: { Hash: 64 } })`
+- `ponder(move, options?)` — sends `go ponder` for pondering on a move; guards
+  against double-call
+- `ponderhit()` — commits ponder move, switches engine from ponder to normal
+  search
+- `sbhits` field on `InfoCommand` — Shredder endgame database hits
+- `reset()` now sends `ucinewgame` before `position startpos`
+- `stop()` now clears pondering state
+
+### Changed
+
+- `start()` parameter changed from `Record<string, unknown>` (setoptions) to
+  `GoOptions` (search parameters) — **breaking change**
+- Engine `setoption` overrides now passed via constructor `config` option
+  instead of `start()` argument
+
+### Migration from v2
+
+```ts
+// v2
+const uci = new UCI('/path/to/engine');
+await uci.start({ MultiPV: 4, Hash: 128 });
+
+// v3
+const uci = new UCI('/path/to/engine', { config: { Hash: 128 } });
+uci.lines = 4; // MultiPV is still set via the lines property
+await uci.start(); // no args needed for engine config
+await uci.start({ movetime: 1000 }); // time-controlled search
+```
+
 ## [2.0.0] - 2026-03-15
 
 ### Added
