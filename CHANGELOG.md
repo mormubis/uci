@@ -8,6 +8,18 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [3.0.2] - 2026-03-15
+
+### Added
+
+- `Events` and `GoOptions` are now re-exported from the package root — consumers
+  can import them directly: `import UCI, { type GoOptions } from '@echecs/uci'`
+
+### Fixed
+
+- `start()` no longer re-sends `setoption` commands on every call — engine
+  config is now applied exactly once after the UCI handshake
+
 ## [3.0.1] - 2026-03-15
 
 ### Fixed

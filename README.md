@@ -45,6 +45,13 @@ library handles all of that:
 npm install @echecs/uci
 ```
 
+Named types are exported directly from the package:
+
+```typescript
+import UCI, { type GoOptions, type Events } from '@echecs/uci';
+// Also available: ID, InfoCommand, Option, Score
+```
+
 ## Quick Start
 
 ```typescript
