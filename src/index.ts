@@ -220,14 +220,22 @@ class UCI {
   }
 
   async ponder(move: string, options: GoOptions = {}): Promise<void> {
+    if (this.#pondering) {
+      void this.#emitter.emit(
+        'error',
+        new Error('ponder() called while already pondering'),
+      );
+      return;
+    }
+
     await this.execute('stop');
 
     this.#ponderMove = move;
     const list = [...this.#moves, move].join(' ');
 
     await this.execute(`position ${this.#position} moves ${list}`);
-    this.#pondering = true;
     await this.go(options, true);
+    this.#pondering = true;
   }
 
   async ponderhit(): Promise<void> {

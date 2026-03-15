@@ -373,6 +373,29 @@ describe('UCI', () => {
     );
   });
 
+  it('ponder() emits an error when already pondering', async () => {
+    const uci = new UCI('/invalid/path');
+    const errors: Error[] = [];
+    uci.on('error', (error) => {
+      errors.push(error);
+    });
+    vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    ).mockResolvedValue();
+    vi.spyOn(
+      uci as unknown as { ready: () => Promise<void> },
+      'ready',
+    ).mockResolvedValue();
+
+    await uci.ponder('e7e5');
+    await uci.ponder('d7d5'); // second call while pondering
+
+    expect(
+      errors.some((error) => error.message.includes('already pondering')),
+    ).toBe(true);
+  });
+
   it('short-circuits on subsequent ready() calls after failure', async () => {
     const uci = new UCI('/invalid/path', { timeout: 20 });
     const errors: Error[] = [];
