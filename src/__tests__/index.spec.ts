@@ -267,6 +267,37 @@ describe('UCI', () => {
     expect(calls.indexOf(setoption!)).toBeLessThan(calls.indexOf(go!));
   });
 
+  it('constructor config setoptions are only sent on the first start() call', async () => {
+    const uci = new UCI('/invalid/path', { config: { Hash: 64 } });
+    const calls: string[] = [];
+    const ingest = (line: string) =>
+      (uci as unknown as { ingest: (l: string) => Promise<void> }).ingest(line);
+    vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    ).mockImplementation(async (cmd) => {
+      calls.push(cmd);
+      if (cmd === 'isready') {
+        void ingest('readyok');
+      }
+    });
+    vi.spyOn(
+      (uci as unknown as { options: { set: () => void } }).options,
+      'set',
+    ).mockReturnValue();
+
+    void ingest('uciok');
+    await Promise.resolve();
+
+    await uci.start();
+    await uci.start();
+
+    const setoptionCalls = calls.filter((c) =>
+      c.includes('setoption name Hash'),
+    );
+    expect(setoptionCalls).toHaveLength(1);
+  });
+
   it('start() sends go infinite when no GoOptions are set', async () => {
     const uci = new UCI('/invalid/path');
     const ingest = (line: string) =>

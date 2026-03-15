@@ -29,6 +29,12 @@ class UCI {
   readonly #config: Record<string, unknown>;
 
   /**
+   * Whether #config setoptions have already been sent to the engine.
+   * @private
+   */
+  #configApplied = false;
+
+  /**
    * Internal state of the depth
    * @private
    */
@@ -286,22 +292,26 @@ class UCI {
       return;
     }
 
-    const config: Record<string, unknown> = {
-      MultiPV: this.#lines,
-      ...this.#config,
-    };
+    if (!this.#configApplied) {
+      this.#configApplied = true;
 
-    for (const [key, value] of Object.entries(config)) {
-      try {
-        this.options.set(key, value);
-      } catch (error: unknown) {
-        void this.#emitter.emit(
-          'error',
-          error instanceof Error ? error : new Error(String(error)),
-        );
-        continue; // skip sending invalid option to engine
+      const config: Record<string, unknown> = {
+        MultiPV: this.#lines,
+        ...this.#config,
+      };
+
+      for (const [key, value] of Object.entries(config)) {
+        try {
+          this.options.set(key, value);
+        } catch (error: unknown) {
+          void this.#emitter.emit(
+            'error',
+            error instanceof Error ? error : new Error(String(error)),
+          );
+          continue; // skip sending invalid option to engine
+        }
+        await this.execute(`setoption name ${key} value ${value}`);
       }
-      await this.execute(`setoption name ${key} value ${value}`);
     }
 
     await this.go(options);
@@ -445,3 +455,4 @@ class UCI {
 }
 
 export default UCI;
+export type { Events, GoOptions } from './types.js';
