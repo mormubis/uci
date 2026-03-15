@@ -38,6 +38,20 @@ interface Name {
 /** Options exposed by a UCI engine */
 export type Option = OneOf<[Button, Check, Combo, Spin, Stringy]> & Name;
 
+/** Parameters for the UCI `go` command */
+export interface GoOptions {
+  binc?: number;
+  btime?: number;
+  depth?: number;
+  mate?: number;
+  movestogo?: number;
+  movetime?: number;
+  nodes?: number;
+  searchmoves?: string[];
+  winc?: number;
+  wtime?: number;
+}
+
 /** Engine identity (name + author) */
 export interface ID {
   author: string;
