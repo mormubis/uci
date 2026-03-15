@@ -213,6 +213,8 @@ engine.lines = 3; // MultiPV — return top N lines (default: 1)
 await engine.stop(): Promise<void>   // halts the current search (engine stays alive)
 await engine.reset(): Promise<void>  // sends ucinewgame + resets to startpos
 await engine[Symbol.dispose](): Promise<void> // sends quit + kills the process
+await engine.debug(true): Promise<void>   // sends "debug on"
+await engine.debug(false): Promise<void>  // sends "debug off"
 ```
 
 ### Low-level access
