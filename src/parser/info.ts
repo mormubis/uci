@@ -14,8 +14,9 @@ const extractor = extract([
   'nps',
   'pv',
   'refutation',
-  'seldepth',
+  'sbhits',
   'score',
+  'seldepth',
   'string',
   'tbhits',
   'time',
@@ -85,6 +86,7 @@ function info(value: string): InfoCommand {
     nps,
     pv,
     refutation,
+    sbhits,
     score,
     seldepth,
     string,
@@ -106,6 +108,7 @@ function info(value: string): InfoCommand {
   const npsString = asString(nps);
   const pvString = asString(pv);
   const refutationString = asString(refutation);
+  const sbhitsString = asString(sbhits);
   const seldepthString = asString(seldepth);
   const infoString = asString(string);
   const tbhitsString = asString(tbhits);
@@ -141,6 +144,7 @@ function info(value: string): InfoCommand {
     ...(refutationString !== undefined && {
       refutation: refutationString.trim().split(' '),
     }),
+    ...(sbhitsString !== undefined && { sbhits: Number(sbhitsString) }),
     ...(parsedScore !== undefined && { score: parsedScore }),
     ...(tbhitsString !== undefined && { tbhits: Number(tbhitsString) }),
     ...(timeString !== undefined && { time: Number(timeString) }),

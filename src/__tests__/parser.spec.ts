@@ -194,6 +194,10 @@ describe('info', () => {
       refutation: ['d1h5', 'g6h5'],
     });
   });
+
+  it('parses sbhits', () => {
+    expect(info('sbhits 42')).toEqual({ sbhits: 42 });
+  });
 });
 
 describe('identity', () => {

@@ -76,6 +76,7 @@ export interface InfoCommand {
   moves?: string[];
   nodes?: number;
   refutation?: string[];
+  sbhits?: number;
   score?: Score;
   stats?: { nps?: number };
   tbhits?: number;
