@@ -167,15 +167,29 @@ Groups, separated by a blank line, in this order:
 
 ## Architecture Notes
 
-- `UCI` extends `Emittery<Events>` — all engine output is surfaced as typed
-  events (`bestmove`, `info`, `id`, `option`, `error`, etc.).
+- `UCI` does **not** extend `Emittery` — it holds a private `#emitter` field and
+  exposes only `on()`, `off()`, and `once()`. All engine output is surfaced as
+  typed events (`bestmove`, `info`, `id`, `option`, `error`, etc.).
 - Engine communication flows: `Process` (child process + line reader) →
   `UCI#ingest` (parser dispatch) → typed `emit` calls.
 - `Options` validates and stores engine options using Zod schemas.
 - `src/types.ts` holds all public types as named exports — do not use global
   ambient namespaces.
-- Propagate errors via `this.emit('error', ...)` — do not swallow them silently.
+- Propagate errors via `this.#emitter.emit('error', ...)` — do not swallow them
+  silently.
 - Runtime dependencies (`emittery`, `zod`) are intentional; do not remove them.
+
+### Error propagation — known limitation
+
+`ready()` and `execute()` are **error-absorbing**: they catch all rejections
+internally and route them to `this.#emitter.emit('error', ...)`, then return a
+resolved promise. They never reject.
+
+This means adding a `.catch()` to a chain like
+`this.ready().then(() => this.execute(...))` is **dead code** — neither call
+will reject, so the `.catch()` can never fire. Do not propose "add a `.catch()`
+to propagate errors" as a fix anywhere in `src/index.ts`; it will not work
+without first refactoring `ready()` or `execute()` to throw instead of absorb.
 
 ---
 
