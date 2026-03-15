@@ -241,10 +241,13 @@ class UCI {
     for (const [key, value] of Object.entries(config)) {
       try {
         this.options.set(key, value);
-      } catch {
-        // Option not defined locally — still send to engine
+      } catch (error: unknown) {
+        void this.#emitter.emit(
+          'error',
+          error instanceof Error ? error : new Error(String(error)),
+        );
+        continue; // skip sending invalid option to engine
       }
-
       await this.execute(`setoption name ${key} value ${value}`);
     }
 
@@ -262,10 +265,6 @@ class UCI {
 
     if (ponder) {
       parts.push('ponder');
-    }
-
-    if (options.searchmoves && options.searchmoves.length > 0) {
-      parts.push('searchmoves', ...options.searchmoves);
     }
 
     if (options.wtime !== undefined) {
@@ -316,6 +315,10 @@ class UCI {
 
     if (!hasSearchLimit && !ponder) {
       parts.push('infinite');
+    }
+
+    if (options.searchmoves && options.searchmoves.length > 0) {
+      parts.push('searchmoves', ...options.searchmoves);
     }
 
     await this.execute(parts.join(' '));
