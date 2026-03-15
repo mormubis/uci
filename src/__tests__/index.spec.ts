@@ -396,6 +396,50 @@ describe('UCI', () => {
     ).toBe(true);
   });
 
+  it('ponder() sends position command containing the ponder move', async () => {
+    const uci = new UCI('/invalid/path');
+    const calls: string[] = [];
+    vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    ).mockImplementation(async (cmd) => {
+      calls.push(cmd);
+    });
+    vi.spyOn(
+      uci as unknown as { ready: () => Promise<void> },
+      'ready',
+    ).mockResolvedValue();
+
+    await uci.ponder('e7e5');
+
+    const positionCall = calls.find((c) => c.startsWith('position'));
+    expect(positionCall).toContain('e7e5');
+  });
+
+  it('move() clears pondering state so ponderhit() emits error afterwards', async () => {
+    const uci = new UCI('/invalid/path');
+    const errors: Error[] = [];
+    uci.on('error', (error) => {
+      errors.push(error);
+    });
+    vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    ).mockResolvedValue();
+    vi.spyOn(
+      uci as unknown as { ready: () => Promise<void> },
+      'ready',
+    ).mockResolvedValue();
+
+    await uci.ponder('e7e5');
+    await uci.move('d2d4');
+    await uci.ponderhit();
+
+    expect(errors.some((error) => error.message.includes('pondering'))).toBe(
+      true,
+    );
+  });
+
   it('short-circuits on subsequent ready() calls after failure', async () => {
     const uci = new UCI('/invalid/path', { timeout: 20 });
     const errors: Error[] = [];
