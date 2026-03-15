@@ -166,7 +166,14 @@ class UCI {
     this.#position = input;
     this.#moves = [];
 
-    this.ready().then(() => this.execute(`position ${input}`));
+    this.ready()
+      .then(() => this.execute(`position ${input}`))
+      .catch((error: unknown) => {
+        void this.#emitter.emit(
+          'error',
+          error instanceof Error ? error : new Error(String(error)),
+        );
+      });
   }
 
   async [Symbol.dispose](): Promise<void> {

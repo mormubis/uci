@@ -173,6 +173,26 @@ describe('UCI', () => {
     expect(calls[1]).toBe('position startpos');
   });
 
+  it('position setter emits an error when execute fails', async () => {
+    const uci = new UCI('/invalid/path');
+    const errors: Error[] = [];
+    uci.on('error', (error) => {
+      errors.push(error);
+    });
+
+    // Wait for initial process error to settle
+    await new Promise<void>((resolve) => setTimeout(resolve, 50));
+
+    const before = errors.length;
+
+    // Assigning position triggers ready() then execute() — both will fail
+    uci.position = 'startpos';
+
+    await new Promise<void>((resolve) => setTimeout(resolve, 100));
+
+    expect(errors.length).toBeGreaterThan(before);
+  });
+
   it('start() sends go with movetime when GoOptions.movetime is set', async () => {
     const uci = new UCI('/invalid/path');
     const calls: string[] = [];
