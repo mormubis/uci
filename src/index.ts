@@ -192,6 +192,8 @@ class UCI {
   }
 
   async move(input: string, options: GoOptions = {}): Promise<void> {
+    this.#pondering = false;
+    this.#ponderMove = undefined;
     this.#moves.push(input);
 
     const list = this.#moves.join(' ');
@@ -266,6 +268,8 @@ class UCI {
   }
 
   async reset(): Promise<void> {
+    this.#pondering = false;
+    this.#ponderMove = undefined;
     await this.ready();
     await this.execute('ucinewgame');
     this.position = 'startpos';
@@ -358,6 +362,7 @@ class UCI {
 
     const hasSearchLimit =
       depth !== undefined ||
+      options.movestogo !== undefined ||
       options.movetime !== undefined ||
       options.nodes !== undefined ||
       options.mate !== undefined ||
