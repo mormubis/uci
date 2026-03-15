@@ -66,6 +66,12 @@ class UCI {
   #moves: string[] = [];
 
   /**
+   * Whether the engine is currently in ponder mode.
+   * @private
+   */
+  #pondering = false;
+
+  /**
    * Initial position of the engine
    * @private
    */
@@ -207,6 +213,28 @@ class UCI {
     return this.#emitter.once(event);
   }
 
+  async ponder(move: string, options: GoOptions = {}): Promise<void> {
+    this.#moves.push(move);
+    const list = this.#moves.join(' ');
+
+    await this.execute(`position ${this.#position} moves ${list}`);
+    this.#pondering = true;
+    await this.go(options, true);
+  }
+
+  async ponderhit(): Promise<void> {
+    if (!this.#pondering) {
+      void this.#emitter.emit(
+        'error',
+        new Error('ponderhit() called when not pondering'),
+      );
+      return;
+    }
+
+    this.#pondering = false;
+    await this.execute('ponderhit');
+  }
+
   async register(options?: RegisterOptions): Promise<void> {
     if (!options) {
       return this.execute('register later');
@@ -255,6 +283,7 @@ class UCI {
   }
 
   stop(): Promise<void> {
+    this.#pondering = false;
     return this.execute('stop');
   }
 
