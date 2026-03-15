@@ -176,18 +176,25 @@ describe('UCI', () => {
   it('start() sends go with movetime when GoOptions.movetime is set', async () => {
     const uci = new UCI('/invalid/path');
     const calls: string[] = [];
+    const ingest = (line: string) =>
+      (uci as unknown as { ingest: (l: string) => Promise<void> }).ingest(line);
     vi.spyOn(
       uci as unknown as { execute: (cmd: string) => Promise<void> },
       'execute',
     ).mockImplementation(async (cmd) => {
       calls.push(cmd);
+      if (cmd === 'isready') {
+        void ingest('readyok');
+      }
     });
-
-    // skip ready() by mocking it
     vi.spyOn(
-      uci as unknown as { ready: () => Promise<void> },
-      'ready',
-    ).mockResolvedValue();
+      (uci as unknown as { options: { set: () => void } }).options,
+      'set',
+    ).mockReturnValue();
+
+    // Resolve #ready by simulating uciok
+    void ingest('uciok');
+    await Promise.resolve();
 
     await uci.start({ movetime: 1000 });
 
@@ -199,16 +206,25 @@ describe('UCI', () => {
   it('start() sends go with wtime/btime when provided', async () => {
     const uci = new UCI('/invalid/path');
     const calls: string[] = [];
+    const ingest = (line: string) =>
+      (uci as unknown as { ingest: (l: string) => Promise<void> }).ingest(line);
     vi.spyOn(
       uci as unknown as { execute: (cmd: string) => Promise<void> },
       'execute',
     ).mockImplementation(async (cmd) => {
       calls.push(cmd);
+      if (cmd === 'isready') {
+        void ingest('readyok');
+      }
     });
     vi.spyOn(
-      uci as unknown as { ready: () => Promise<void> },
-      'ready',
-    ).mockResolvedValue();
+      (uci as unknown as { options: { set: () => void } }).options,
+      'set',
+    ).mockReturnValue();
+
+    // Resolve #ready by simulating uciok
+    void ingest('uciok');
+    await Promise.resolve();
 
     await uci.start({ wtime: 60_000, btime: 60_000, winc: 1000, binc: 1000 });
 
@@ -222,16 +238,25 @@ describe('UCI', () => {
   it('constructor config is applied as setoptions before go in start()', async () => {
     const uci = new UCI('/invalid/path', { config: { Hash: 64 } });
     const calls: string[] = [];
+    const ingest = (line: string) =>
+      (uci as unknown as { ingest: (l: string) => Promise<void> }).ingest(line);
     vi.spyOn(
       uci as unknown as { execute: (cmd: string) => Promise<void> },
       'execute',
     ).mockImplementation(async (cmd) => {
       calls.push(cmd);
+      if (cmd === 'isready') {
+        void ingest('readyok');
+      }
     });
     vi.spyOn(
-      uci as unknown as { ready: () => Promise<void> },
-      'ready',
-    ).mockResolvedValue();
+      (uci as unknown as { options: { set: () => void } }).options,
+      'set',
+    ).mockReturnValue();
+
+    // Resolve #ready by simulating uciok
+    void ingest('uciok');
+    await Promise.resolve();
 
     await uci.start();
 
@@ -244,16 +269,26 @@ describe('UCI', () => {
 
   it('start() sends go infinite when no GoOptions are set', async () => {
     const uci = new UCI('/invalid/path');
+    const ingest = (line: string) =>
+      (uci as unknown as { ingest: (l: string) => Promise<void> }).ingest(line);
     vi.spyOn(
-      uci as unknown as { ready: () => Promise<void> },
-      'ready',
-    ).mockResolvedValue();
+      (uci as unknown as { options: { set: () => void } }).options,
+      'set',
+    ).mockReturnValue();
     const executeSpy = vi
       .spyOn(
         uci as unknown as { execute: (cmd: string) => Promise<void> },
         'execute',
       )
-      .mockResolvedValue();
+      .mockImplementation(async (cmd) => {
+        if (cmd === 'isready') {
+          void ingest('readyok');
+        }
+      });
+
+    // Resolve #ready by simulating uciok
+    void ingest('uciok');
+    await Promise.resolve();
 
     await uci.start();
 

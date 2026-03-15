@@ -223,7 +223,15 @@ class UCI {
   }
 
   async start(options: GoOptions = {}): Promise<void> {
-    await this.ready();
+    try {
+      await this.#ready;
+    } catch (error: unknown) {
+      void this.#emitter.emit(
+        'error',
+        error instanceof Error ? error : new Error(String(error)),
+      );
+      return;
+    }
 
     const config: Record<string, unknown> = {
       MultiPV: this.#lines,
