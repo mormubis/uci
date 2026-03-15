@@ -7,14 +7,13 @@ import noop from './noop.js';
 import type { Events, ID, Option } from '../types.js';
 
 const copyprotection = identity<string>;
-const error = identity;
 const id = extract(['author', 'name']) as (value: string) => ID;
 const option = extract(['default', 'max', 'min', 'name', 'type', 'var']) as (
   value: string,
 ) => Option;
-const readyok = noop as (value: string) => undefined;
+const readyok = noop;
 const registration = identity<string>;
-const uciok = noop as (value: string) => undefined;
+const uciok = noop;
 
 type ParserKeys =
   | 'bestmove'
@@ -41,7 +40,7 @@ export const parsers = {
   uciok,
 } satisfies Parsers;
 
-export { copyprotection, error, id, option, readyok, registration, uciok };
+export { copyprotection, id, option, readyok, registration, uciok };
 
 export { default as bestmove } from './bestmove.js';
 export { default as info } from './info.js';
