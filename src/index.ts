@@ -1,7 +1,7 @@
 import Emittery from 'emittery';
 
 import Options from './options.js';
-import * as parser from './parser/index.js';
+import { parsers } from './parser/index.js';
 import Process from './process.js';
 
 import type { Events, GoOptions, ID } from './types.js';
@@ -405,15 +405,13 @@ class UCI {
       return;
     }
 
-    if (!(key in parser)) {
-      // If the command is not in the parser, emit it as output
+    if (!(key in parsers)) {
       await this.#emitter.emit('output', input);
       return;
     }
 
-    const command = key as keyof typeof parser;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, import-x/namespace
-    const payload = (parser[command] as (v: string) => any)(value);
+    const command = key as keyof typeof parsers;
+    const payload = parsers[command](value);
 
     await this.#emitter.emit(command as keyof Events, payload);
   }
