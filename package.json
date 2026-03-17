@@ -10,7 +10,7 @@
   "description": "UCI is a Universal Chess Interface that is part of the ECHECS project, providing a standardized way for chess engines to communicate with graphical user interfaces (GUIs).",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "^22.19.15",
+    "@types/node": "^25.5.0",
     "@typescript-eslint/parser": "^8.57.0",
     "@vitest/coverage-v8": "^4.1.0",
     "@vitest/eslint-plugin": "^1.6.12",
