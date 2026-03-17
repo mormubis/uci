@@ -7,7 +7,7 @@
     "emittery": "^1.1.0",
     "zod": "^3.24.2"
   },
-  "description": "UCI is a Universal Chess Interface that is part of the ECHECS project, providing a standardized way for chess engines to communicate with graphical user interfaces (GUIs).",
+  "description": "Universal Chess Interface (UCI) wrapper for Node.js. Spawns and communicates with UCI chess engines (Stockfish, Komodo, etc.) via a typed event-emitter API.",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^25.5.0",
@@ -47,10 +47,15 @@
   "keywords": [
     "chess",
     "chess engine",
-    "fide",
-    "interface",
+    "engine",
+    "event-emitter",
+    "node",
+    "protocol",
+    "stockfish",
+    "typescript",
     "uci",
-    "universal chess interface"
+    "universal chess interface",
+    "wrapper"
   ],
   "license": "MIT",
   "main": "dist/index.js",
