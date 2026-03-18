@@ -523,6 +523,227 @@ describe('UCI', () => {
     );
   });
 
+  it('start() sends go with depth option', async () => {
+    const uci = new UCI('/invalid/path');
+    const calls: string[] = [];
+    const ingest = (line: string) =>
+      (uci as unknown as { ingest: (l: string) => Promise<void> }).ingest(line);
+    vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    ).mockImplementation(async (cmd) => {
+      calls.push(cmd);
+      if (cmd === 'isready') {
+        void ingest('readyok');
+      }
+    });
+    vi.spyOn(
+      (uci as unknown as { options: { set: () => void } }).options,
+      'set',
+    ).mockReturnValue();
+
+    void ingest('uciok');
+    await Promise.resolve();
+
+    await uci.start({ depth: 20 });
+
+    const goCall = calls.find((c) => c.startsWith('go'))!;
+    expect(goCall).toContain('depth 20');
+    expect(goCall).not.toContain('infinite');
+  });
+
+  it('start() sends go with nodes option', async () => {
+    const uci = new UCI('/invalid/path');
+    const calls: string[] = [];
+    const ingest = (line: string) =>
+      (uci as unknown as { ingest: (l: string) => Promise<void> }).ingest(line);
+    vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    ).mockImplementation(async (cmd) => {
+      calls.push(cmd);
+      if (cmd === 'isready') {
+        void ingest('readyok');
+      }
+    });
+    vi.spyOn(
+      (uci as unknown as { options: { set: () => void } }).options,
+      'set',
+    ).mockReturnValue();
+
+    void ingest('uciok');
+    await Promise.resolve();
+
+    await uci.start({ nodes: 1_000_000 });
+
+    const goCall = calls.find((c) => c.startsWith('go'))!;
+    expect(goCall).toContain('nodes 1000000');
+  });
+
+  it('start() sends go with mate option', async () => {
+    const uci = new UCI('/invalid/path');
+    const calls: string[] = [];
+    const ingest = (line: string) =>
+      (uci as unknown as { ingest: (l: string) => Promise<void> }).ingest(line);
+    vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    ).mockImplementation(async (cmd) => {
+      calls.push(cmd);
+      if (cmd === 'isready') {
+        void ingest('readyok');
+      }
+    });
+    vi.spyOn(
+      (uci as unknown as { options: { set: () => void } }).options,
+      'set',
+    ).mockReturnValue();
+
+    void ingest('uciok');
+    await Promise.resolve();
+
+    await uci.start({ mate: 3 });
+
+    const goCall = calls.find((c) => c.startsWith('go'))!;
+    expect(goCall).toContain('mate 3');
+  });
+
+  it('start() sends go with searchmoves option', async () => {
+    const uci = new UCI('/invalid/path');
+    const calls: string[] = [];
+    const ingest = (line: string) =>
+      (uci as unknown as { ingest: (l: string) => Promise<void> }).ingest(line);
+    vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    ).mockImplementation(async (cmd) => {
+      calls.push(cmd);
+      if (cmd === 'isready') {
+        void ingest('readyok');
+      }
+    });
+    vi.spyOn(
+      (uci as unknown as { options: { set: () => void } }).options,
+      'set',
+    ).mockReturnValue();
+
+    void ingest('uciok');
+    await Promise.resolve();
+
+    await uci.start({ searchmoves: ['e2e4', 'd2d4'] });
+
+    const goCall = calls.find((c) => c.startsWith('go'))!;
+    expect(goCall).toContain('searchmoves e2e4 d2d4');
+  });
+
+  it('start() sends go with movestogo option', async () => {
+    const uci = new UCI('/invalid/path');
+    const calls: string[] = [];
+    const ingest = (line: string) =>
+      (uci as unknown as { ingest: (l: string) => Promise<void> }).ingest(line);
+    vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    ).mockImplementation(async (cmd) => {
+      calls.push(cmd);
+      if (cmd === 'isready') {
+        void ingest('readyok');
+      }
+    });
+    vi.spyOn(
+      (uci as unknown as { options: { set: () => void } }).options,
+      'set',
+    ).mockReturnValue();
+
+    void ingest('uciok');
+    await Promise.resolve();
+
+    await uci.start({ movestogo: 30 });
+
+    const goCall = calls.find((c) => c.startsWith('go'))!;
+    expect(goCall).toContain('movestogo 30');
+  });
+
+  it('start() uses instance depth when GoOptions.depth is not set', async () => {
+    const uci = new UCI('/invalid/path');
+    const calls: string[] = [];
+    const ingest = (line: string) =>
+      (uci as unknown as { ingest: (l: string) => Promise<void> }).ingest(line);
+    vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    ).mockImplementation(async (cmd) => {
+      calls.push(cmd);
+      if (cmd === 'isready') {
+        void ingest('readyok');
+      }
+    });
+    vi.spyOn(
+      (uci as unknown as { options: { set: () => void } }).options,
+      'set',
+    ).mockReturnValue();
+
+    void ingest('uciok');
+    await Promise.resolve();
+
+    uci.depth = 15;
+    await uci.start();
+
+    const goCall = calls.find((c) => c.startsWith('go'))!;
+    expect(goCall).toContain('depth 15');
+  });
+
+  it('GoOptions.depth overrides instance depth', async () => {
+    const uci = new UCI('/invalid/path');
+    const calls: string[] = [];
+    const ingest = (line: string) =>
+      (uci as unknown as { ingest: (l: string) => Promise<void> }).ingest(line);
+    vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    ).mockImplementation(async (cmd) => {
+      calls.push(cmd);
+      if (cmd === 'isready') {
+        void ingest('readyok');
+      }
+    });
+    vi.spyOn(
+      (uci as unknown as { options: { set: () => void } }).options,
+      'set',
+    ).mockReturnValue();
+
+    void ingest('uciok');
+    await Promise.resolve();
+
+    uci.depth = 15;
+    await uci.start({ depth: 20 });
+
+    const goCall = calls.find((c) => c.startsWith('go'))!;
+    expect(goCall).toContain('depth 20');
+  });
+
+  it('ingest routes unknown commands to the output event', async () => {
+    const uci = new UCI('/invalid/path');
+    const handler = vi.fn();
+    uci.on('output', handler);
+
+    await (
+      uci as unknown as { ingest: (line: string) => Promise<void> }
+    ).ingest('customcommand some data here');
+
+    expect(handler).toHaveBeenCalledWith('customcommand some data here');
+  });
+
+  it('ingest handles empty string input without crashing', async () => {
+    const uci = new UCI('/invalid/path');
+
+    await expect(
+      (uci as unknown as { ingest: (line: string) => Promise<void> }).ingest(
+        '',
+      ),
+    ).resolves.toBeUndefined();
+  });
+
   it('ready() retries after a previous timeout instead of permanently failing', async () => {
     const uci = new UCI('/invalid/path', { timeout: 20 });
     const errors: Error[] = [];
