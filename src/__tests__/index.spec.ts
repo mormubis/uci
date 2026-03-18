@@ -153,6 +153,58 @@ describe('UCI', () => {
     expect(result).toBe('unknown command');
   });
 
+  it('position() sends position command after ready', async () => {
+    const uci = new UCI('/invalid/path');
+    const calls: string[] = [];
+    vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    ).mockImplementation(async (cmd) => {
+      calls.push(cmd);
+    });
+    vi.spyOn(
+      uci as unknown as { ready: () => Promise<void> },
+      'ready',
+    ).mockResolvedValue();
+
+    await uci.position('startpos');
+
+    expect(calls).toContain('position startpos');
+  });
+
+  it('position() resets move history', async () => {
+    const uci = new UCI('/invalid/path');
+    vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    ).mockResolvedValue();
+    vi.spyOn(
+      uci as unknown as { ready: () => Promise<void> },
+      'ready',
+    ).mockResolvedValue();
+
+    // Simulate some moves existing in history by calling move()
+    await uci.move('e2e4');
+
+    // Now set a new position — moves should be cleared
+    await uci.position('startpos');
+
+    // After position(), a ponder call should use empty moves list
+    const calls: string[] = [];
+    vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    ).mockImplementation(async (cmd) => {
+      calls.push(cmd);
+    });
+
+    await uci.ponder('e7e5');
+
+    const positionCall = calls.find((c) => c.startsWith('position'));
+    // moves list should be reset — only the ponder move, no prior moves
+    expect(positionCall).toBe('position startpos moves e7e5');
+  });
+
   it('reset() sends ucinewgame then position startpos', async () => {
     const uci = new UCI('/invalid/path');
     const calls: string[] = [];

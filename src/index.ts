@@ -151,17 +151,6 @@ class UCI {
     this.#lines = value;
   }
 
-  get position(): string {
-    return this.#position;
-  }
-
-  set position(input: string) {
-    this.#position = input;
-    this.#moves = [];
-
-    this.ready().then(() => this.execute(`position ${input}`));
-  }
-
   async [Symbol.dispose](): Promise<void> {
     await this.execute('quit');
     this.process.kill();
@@ -257,6 +246,14 @@ class UCI {
     await this.execute('ponderhit');
   }
 
+  async position(input: string): Promise<void> {
+    this.#position = input;
+    this.#moves = [];
+
+    await this.ready();
+    await this.execute(`position ${input}`);
+  }
+
   async register(options?: RegisterOptions): Promise<void> {
     if (!options) {
       return this.execute('register later');
@@ -269,9 +266,8 @@ class UCI {
   async reset(): Promise<void> {
     this.#pondering = false;
     this.#ponderMove = undefined;
-    await this.ready();
     await this.execute('ucinewgame');
-    this.position = 'startpos';
+    await this.position('startpos');
   }
 
   async start(options: GoOptions = {}): Promise<void> {
