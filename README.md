@@ -194,11 +194,11 @@ error.
 ### Setting position
 
 ```typescript
-engine.position = 'startpos'; // initial position (default)
-engine.position = 'fen <fenstring>'; // custom position
+await engine.position('startpos'); // initial position (default)
+await engine.position('fen <fenstring>'); // custom position
 ```
 
-Assigning `position` resets the move list and sends `position` to the engine.
+Calling `position()` resets the move list and sends `position` to the engine.
 
 ### Configuring search defaults
 

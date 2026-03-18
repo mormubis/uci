@@ -12,6 +12,21 @@ UCI chess engine processes, providing a typed event-emitter API.
 `UCI` class. Runtime dependencies: `emittery` (event emitter) and `zod` (option
 validation).
 
+---
+
+## Similar Libraries
+
+Use these to cross-check output when testing:
+
+- [`node-uci`](https://www.npmjs.com/package/node-uci) — UCI protocol
+  implementation for Node.js; promise-based API.
+- [`uci`](https://www.npmjs.com/package/uci) — thin wrapper on a UCI chess
+  engine.
+- [`uci.js`](https://github.com/geodic/uci.js) — TypeScript UCI library with
+  async engine interaction.
+
+---
+
 Key source files:
 
 | File                                | Role                                                      |
@@ -165,6 +180,16 @@ Groups, separated by a blank line, in this order:
 
 ---
 
+## Validation
+
+Input validation is mostly provided by TypeScript's strict type system at
+compile time. The exception in this package is engine option validation, which
+uses `zod` for runtime schema validation (since engine options arrive as untyped
+strings from the UCI protocol). Do not add additional runtime type-checking
+guards elsewhere unless there is an explicit trust boundary.
+
+---
+
 ## Architecture Notes
 
 - `UCI` does **not** extend `Emittery` — it holds a private `#emitter` field and
@@ -191,11 +216,73 @@ will reject, so the `.catch()` can never fire. Do not propose "add a `.catch()`
 to propagate errors" as a fix anywhere in `src/index.ts`; it will not work
 without first refactoring `ready()` or `execute()` to throw instead of absorb.
 
+Note: `ready()` does **not** permanently cache errors. A failed `isready`
+handshake does not prevent subsequent `ready()` calls from retrying — each call
+performs a fresh handshake.
+
 ---
 
-## Publishing
+## Release Protocol
 
-The package is published as `@echecs/uci`. A GitHub Actions workflow publishes
-automatically when the `version` field in `package.json` is bumped on `main`. Do
-not manually publish. Always update `CHANGELOG.md` alongside any version bump.
-Bump patch for fixes, minor for new features, major for breaking changes.
+Step-by-step process for releasing a new version. CI auto-publishes to npm when
+`version` in `package.json` changes on `main`.
+
+1. **Verify the package is clean:**
+
+   ```bash
+   pnpm lint && pnpm test && pnpm build
+   ```
+
+   Do not proceed if any step fails.
+
+2. **Decide the semver level:**
+   - `patch` — bug fixes, internal refactors with no API change
+   - `minor` — new features, new exports, non-breaking additions
+   - `major` — breaking changes to the public API
+
+3. **Update `CHANGELOG.md`** following
+   [Keep a Changelog](https://keepachangelog.com) format:
+
+   ```markdown
+   ## [x.y.z] - YYYY-MM-DD
+
+   ### Added
+
+   - …
+
+   ### Changed
+
+   - …
+
+   ### Fixed
+
+   - …
+
+   ### Removed
+
+   - …
+   ```
+
+   Include only sections that apply. Use past tense.
+
+4. **Update `README.md`** if the release introduces new public API, changes
+   usage examples, or deprecates/removes existing features.
+
+5. **Bump the version:**
+
+   ```bash
+   npm version <major|minor|patch> --no-git-tag-version
+   ```
+
+6. **Commit and push:**
+
+   ```bash
+   git add package.json CHANGELOG.md README.md
+   git commit -m "release: @echecs/uci@x.y.z"
+   git push
+   ```
+
+7. **CI takes over:** GitHub Actions detects the version bump, runs format →
+   lint → test, and publishes to npm.
+
+Do not manually publish with `npm publish`.

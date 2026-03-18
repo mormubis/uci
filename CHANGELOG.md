@@ -8,6 +8,26 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-03-18
+
+### Changed
+
+- `position` is now an async method instead of a setter. Use
+  `await engine.position('startpos')` instead of `engine.position = 'startpos'`.
+
+### Fixed
+
+- Process stderr now emits proper `Error` objects instead of raw `Buffer`.
+- `ready()` no longer permanently caches errors — subsequent calls retry the
+  `isready` handshake, allowing recovery from transient failures.
+
+### Added
+
+- Process class unit tests (stdout buffering, stderr, write errors, lifecycle).
+- `go()` option combination tests (depth, nodes, mate, searchmoves, movestogo).
+- Edge case tests for parser and ingest (empty input, unknown commands, string
+  info).
+
 ## [3.0.2] - 2026-03-15
 
 ### Added
