@@ -453,4 +453,11 @@ class UCI {
 }
 
 export default UCI;
-export type { Events, GoOptions } from './types.js';
+export type {
+  Events,
+  GoOptions,
+  ID,
+  InfoCommand,
+  Option,
+  Score,
+} from './types.js';

@@ -25,11 +25,11 @@ type ParserKeys =
   | 'registration'
   | 'uciok';
 
-export type Parsers = {
+type Parsers = {
   [K in ParserKeys]: (value: string) => Events[K];
 };
 
-export const parsers = {
+const parsers = {
   bestmove,
   copyprotection,
   id,
@@ -40,7 +40,8 @@ export const parsers = {
   uciok,
 } satisfies Parsers;
 
-export { copyprotection, id, option, readyok, registration, uciok };
+export type { Parsers };
+export { copyprotection, id, option, parsers, readyok, registration, uciok };
 
 export { default as bestmove } from './bestmove.js';
 export { default as info } from './info.js';
