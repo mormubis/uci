@@ -471,27 +471,34 @@ describe('UCI', () => {
     );
   });
 
-  it('short-circuits on subsequent ready() calls after failure', async () => {
+  it('ready() retries after a previous timeout instead of permanently failing', async () => {
     const uci = new UCI('/invalid/path', { timeout: 20 });
     const errors: Error[] = [];
     uci.on('error', (error) => {
       errors.push(error);
     });
 
-    // Trigger a ready() that will time out
+    // First ready() times out
     void (uci as unknown as { ready: () => Promise<void> }).ready();
-
-    // Wait for timeout to set #errored
     await new Promise<void>((resolve) => setTimeout(resolve, 150));
 
-    const before = errors.length;
-    expect(before).toBeGreaterThan(0);
+    const timeoutErrors = errors.filter((error) =>
+      error.message.includes('timeout'),
+    );
+    expect(timeoutErrors.length).toBeGreaterThan(0);
 
-    // Second call should short-circuit and emit same error immediately
-    await (uci as unknown as { ready: () => Promise<void> }).ready();
+    // Second ready() should attempt a fresh handshake (send isready again)
+    const executeSpy = vi.spyOn(
+      uci as unknown as { execute: (cmd: string) => Promise<void> },
+      'execute',
+    );
 
-    expect(errors.length).toBeGreaterThan(before);
-    // The re-emitted error should be the same message
-    expect(errors.at(-1)?.message).toBe(errors[before - 1]?.message);
+    void (uci as unknown as { ready: () => Promise<void> }).ready();
+
+    await new Promise<void>((resolve) => setTimeout(resolve, 50));
+    const isreadyCalls = executeSpy.mock.calls.filter(
+      ([cmd]) => cmd === 'isready',
+    );
+    expect(isreadyCalls.length).toBeGreaterThan(0);
   });
 });

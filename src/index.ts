@@ -47,13 +47,6 @@ class UCI {
   readonly #emitter = new Emittery<Events>();
 
   /**
-   * Stores the first error that caused ready() to fail.
-   * Once set, all subsequent ready() calls short-circuit.
-   * @private
-   */
-  #errored: Error | undefined;
-
-  /**
    * Internal store of the engine id
    * @private
    */
@@ -410,11 +403,6 @@ class UCI {
   }
 
   private async ready(): Promise<void> {
-    if (this.#errored) {
-      void this.#emitter.emit('error', this.#errored);
-      return;
-    }
-
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
     let unsubscribeExit: (() => void) | undefined;
     let unsubscribeReadyok: (() => void) | undefined;
@@ -442,8 +430,10 @@ class UCI {
     try {
       await Promise.race([readyok, exit, timeout]);
     } catch (error: unknown) {
-      this.#errored = error instanceof Error ? error : new Error(String(error));
-      void this.#emitter.emit('error', this.#errored);
+      void this.#emitter.emit(
+        'error',
+        error instanceof Error ? error : new Error(String(error)),
+      );
     } finally {
       clearTimeout(timeoutId);
       unsubscribeExit?.();
