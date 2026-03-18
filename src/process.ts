@@ -30,7 +30,9 @@ class Process extends Emittery<Events> {
         this.emit('line', line);
       }
     });
-    this.child.stderr.on('data', (data) => this.emit('error', data));
+    this.child.stderr.on('data', (data) =>
+      this.emit('error', new Error(data.toString().trim())),
+    );
   }
 
   disconnect(): void {
