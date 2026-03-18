@@ -39,7 +39,7 @@ Use **pnpm** exclusively (no npm/yarn).
 ### Build
 
 ```bash
-pnpm build              # compile TypeScript → dist/ (tsconfig.build.json)
+pnpm build              # bundle TypeScript → dist/ via tsdown
 ```
 
 ### Test
