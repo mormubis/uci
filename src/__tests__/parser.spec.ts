@@ -198,6 +198,16 @@ describe('info', () => {
   it('parses sbhits', () => {
     expect(info('sbhits 42')).toEqual({ sbhits: 42 });
   });
+
+  it('returns empty object for empty input', () => {
+    expect(info('')).toEqual({});
+  });
+
+  it('parses string info', () => {
+    expect(info('string engine is thinking...')).toMatchObject({
+      info: 'engine is thinking...',
+    });
+  });
 });
 
 describe('identity', () => {
