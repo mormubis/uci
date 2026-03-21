@@ -8,7 +8,6 @@ import * as typescript from 'typescript-eslint';
 export default typescript.config(
   { ignores: ['tsdown.config.ts'] },
   eslint.configs.recommended,
-  prettier,
   ...typescript.configs.strict,
   ...typescript.configs.stylistic,
   importing.flatConfigs.recommended,
@@ -25,6 +24,11 @@ export default typescript.config(
     rules: {
       'curly': ['error', 'all'],
       'eqeqeq': 'error',
+      'import-x/exports-last': 'error',
+      'import-x/first': 'error',
+      'import-x/group-exports': 'error',
+      'import-x/newline-after-import': 'error',
+      'import-x/no-duplicates': 'error',
       'import-x/order': [
         'error',
         {
@@ -125,4 +129,5 @@ export default typescript.config(
       'sort-keys': 'off',
     },
   },
+  prettier,
 );
