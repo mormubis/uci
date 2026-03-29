@@ -192,6 +192,7 @@ guards elsewhere unless there is an explicit trust boundary.
 
 ## Architecture Notes
 
+- **ESM-only** — the package ships only ESM. Do not add a CJS build.
 - `UCI` does **not** extend `Emittery` — it holds a private `#emitter` field and
   exposes only `on()`, `off()`, and `once()`. All engine output is surfaced as
   typed events (`bestmove`, `info`, `id`, `option`, `error`, etc.).
