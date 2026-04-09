@@ -3,6 +3,8 @@
 Agent guidance for the `@echecs/uci` repository — a TypeScript wrapper around
 UCI chess engine processes, providing a typed event-emitter API.
 
+**Backlog:** tracked in [GitHub Issues](https://github.com/mormubis/uci/issues).
+
 ---
 
 ## Project Overview
@@ -282,6 +284,9 @@ Step-by-step process for releasing a new version. CI auto-publishes to npm when
    git commit -m "release: @echecs/uci@x.y.z"
    git push
    ```
+
+   **The push is mandatory.** The release workflow only triggers on push to
+   `main`. A commit without a push means the release never happens.
 
 7. **CI takes over:** GitHub Actions detects the version bump, runs format →
    lint → test, and publishes to npm.
