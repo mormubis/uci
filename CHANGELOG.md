@@ -8,6 +8,12 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [4.0.1] - 2026-04-09
+
+### Changed
+
+- Documented `id()`, `register()`, `once()`, and `off()` methods in README
+
 ## [4.0.0] - 2026-03-18
 
 ### Changed

@@ -216,6 +216,64 @@ await engine.debug(true): Promise<void>   // sends "debug on"
 await engine.debug(false): Promise<void>  // sends "debug off"
 ```
 
+### Querying the engine identity
+
+```typescript
+async id(): Promise<ID>
+```
+
+Waits for the UCI handshake to complete, then returns the engine's `ID` object
+(`{ name: string; author: string }`). Throws if the engine did not report an
+identity.
+
+```typescript
+const { name, author } = await engine.id();
+console.log(`${name} by ${author}`);
+```
+
+### Registering the engine
+
+```typescript
+async register(options?: RegisterOptions): Promise<void>
+```
+
+Sends a `register` command to the engine. Call without arguments to defer
+registration (`register later`), or pass `{ name, code }` to register
+immediately.
+
+```typescript
+await engine.register(); // register later
+await engine.register({ name: 'My Name', code: '4359874324' });
+```
+
+### Listening for one event
+
+```typescript
+once<K extends keyof Events>(event: K): Promise<Events[K]>
+```
+
+Returns a promise that resolves with the next emission of `event`. Useful for
+waiting on a single engine response without setting up a persistent listener.
+
+```typescript
+const { move } = await engine.once('bestmove');
+```
+
+### Removing a listener
+
+```typescript
+off<K extends keyof Events>(event: K, listener: (data: Events[K]) => void | Promise<void>): void
+```
+
+Removes a listener previously registered with `on()`.
+
+```typescript
+const handler = ({ move }: { move: string | undefined }) => console.log(move);
+engine.on('bestmove', handler);
+// …
+engine.off('bestmove', handler);
+```
+
 ### Low-level access
 
 ```typescript
