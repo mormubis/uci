@@ -10,7 +10,7 @@ Thank you for your interest in contributing to `@echecs/uci`.
 ## Setup
 
 ```bash
-git clone git@github.com:mormubis/uci.git
+git clone git@github.com:echecsjs/uci.git
 cd uci
 pnpm install
 ```
@@ -51,7 +51,7 @@ pnpm build
 
 ## Reporting Bugs
 
-Open an issue at https://github.com/mormubis/uci/issues and include:
+Open an issue at https://github.com/echecsjs/uci/issues and include:
 
 - A minimal reproducible example
 - Expected vs. actual behaviour

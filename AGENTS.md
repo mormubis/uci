@@ -6,7 +6,7 @@ UCI chess engine processes, providing a typed event-emitter API.
 **See also:** [`REFERENCES.md`](REFERENCES.md) |
 [`COMPARISON.md`](COMPARISON.md) | [`SPEC.md`](SPEC.md)
 
-**Backlog:** tracked in [GitHub Issues](https://github.com/mormubis/uci/issues).
+**Backlog:** tracked in [GitHub Issues](https://github.com/echecsjs/uci/issues).
 
 ---
 

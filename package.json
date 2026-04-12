@@ -1,7 +1,7 @@
 {
   "author": "Adrian de la Rosa <adrian@delarosab.me>",
   "bugs": {
-    "url": "https://github.com/mormubis/uci/issues"
+    "url": "https://github.com/echecsjs/uci/issues"
   },
   "dependencies": {
     "emittery": "^1.1.0",
@@ -44,7 +44,7 @@
     "README.md",
     "CHANGELOG.md"
   ],
-  "homepage": "https://github.com/mormubis/uci#readme",
+  "homepage": "https://github.com/echecsjs/uci#readme",
   "keywords": [
     "chess",
     "chess engine",
@@ -63,7 +63,7 @@
   "name": "@echecs/uci",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mormubis/uci.git"
+    "url": "https://github.com/echecsjs/uci.git"
   },
   "sideEffects": false,
   "scripts": {
