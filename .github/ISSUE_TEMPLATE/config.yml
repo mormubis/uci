@@ -1,8 +1,0 @@
-blank_issues_enabled: false
-contact_links:
-  - name: Documentation
-    url: https://echecsjs.github.io/uci/
-    about: Read the API documentation
-  - name: Discussions
-    url: https://github.com/echecsjs/uci/discussions
-    about: Ask questions or share ideas
