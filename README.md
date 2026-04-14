@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@echecs/uci)](https://www.npmjs.com/package/@echecs/uci)
 [![Coverage](https://codecov.io/gh/echecsjs/uci/branch/main/graph/badge.svg)](https://codecov.io/gh/echecsjs/uci)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![API Docs](https://img.shields.io/badge/API-docs-blue.svg)](https://echecsjs.github.io/uci/)
+[![API Docs](https://img.shields.io/badge/API-docs-blue.svg)](https://uci.echecs.dev/)
 
 **UCI** is a TypeScript wrapper for the
 [Universal Chess Interface](https://www.wbec-ridderkerk.nl/html/UCIProtocol.html)
@@ -342,7 +342,7 @@ engine.on('uciok',          () => void)
 
 ## API
 
-Full API reference is available at https://echecsjs.github.io/uci/
+Full API reference is available at https://uci.echecs.dev/
 
 ## Contributing
 
