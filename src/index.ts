@@ -439,6 +439,7 @@ class UCI {
 }
 
 export default UCI;
+export type { RegisterOptions };
 export type {
   Events,
   GoOptions,
