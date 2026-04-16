@@ -8,6 +8,13 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [4.0.2] - 2026-04-16
+
+### Fixed
+
+- Exported `RegisterOptions` type — consumers can now reference it when wrapping
+  `register()`
+
 ## [4.0.1] - 2026-04-09
 
 ### Changed
